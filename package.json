@@ -1,0 +1,10 @@
+{
+  "name": "hyper-rss",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Blake Griffith <blake.a.griffith@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "rss-parser": "^3.13.0"
+  }
+}
