@@ -1,6 +1,6 @@
 import Hypercore from 'hypercore';
 import Parser from 'rss-parser';
-import { Items } from './src/items.js';
+import { Items } from './items.js';
 let parser = new Parser();
 
 const urls = ['https://www.reddit.com/.rss', 'https://xkcd.com/rss.xml', 'https://feeds.soundcloud.com/users/soundcloud%3Ausers%3A211911700/sounds.rss'];
