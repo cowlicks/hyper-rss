@@ -1,10 +1,13 @@
 {
   "name": "hyper-rss",
+  "type": "module",
   "version": "1.0.0",
   "main": "index.js",
   "author": "Blake Griffith <blake.a.griffith@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "hyperbee": "^2.15.0",
+    "hypercore": "^10.18.3",
     "rss-parser": "^3.13.0"
   }
 }
