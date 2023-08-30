@@ -2,7 +2,7 @@
   "name": "hyper-rss",
   "type": "module",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/index.js",
   "author": "Blake Griffith <blake.a.griffith@gmail.com>",
   "license": "MIT",
   "dependencies": {
