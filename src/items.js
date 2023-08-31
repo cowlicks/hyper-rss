@@ -35,4 +35,3 @@ export async function itemsNotHyperized(rssFeed, hyperbeeItemsDb, { hasher = def
 }
 
 
-console.log(Hyperbee);
