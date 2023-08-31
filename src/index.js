@@ -65,15 +65,6 @@ async function initWriter ({ ...opts } = {}) {
   return { store, swarm, cores: { keys, feed, blobs } };
 }
 
-/*
-(async () => {
-  const { store, swarm, cores: { keys, feed, blobs } } = await initWriter();
-  console.log(keys.key.toString('base64'));
-  console.log(keys.discoveryKey.toString('base64'));
-  setTimeout(() => process.exit(0), 500);
-})();
-*/
-
 (async () => {
   const { store, swarm, cores } = await initWriter();
 
