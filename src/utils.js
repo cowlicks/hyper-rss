@@ -13,6 +13,11 @@ class EventListener {
   }
 }
 
+const EXIT_EVENTS = [
+  'exit',
+  'SIGINT',
+  'SIGTERM'
+];
 let _onExit = null;
 
 export const getOnExit = () => {
@@ -20,6 +25,6 @@ export const getOnExit = () => {
     return _onExit;
   }
   _onExit = new EventListener();
-  process.on('exit', (...exitArgs) => _onExit.onEvent(exitArgs));
+  EXIT_EVENTS.forEach(eventName => process.on(eventName, (...exitArgs) => _onExit.onEvent(exitArgs)));
   return _onExit;
 };
