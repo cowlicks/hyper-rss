@@ -1,17 +1,43 @@
 import Hypercore from 'hypercore';
 import Parser from 'rss-parser';
+import Corestore from 'corestore';
 import { Items, itemsNotHyperized } from './items.js';
-let parser = new Parser();
+const parser = new Parser();
 
 const urls = [
-//'https://www.reddit.com/.rss',
-'https://xkcd.com/rss.xml',
-//'https://feeds.soundcloud.com/users/soundcloud%3Ausers%3A211911700/sounds.rss'
+// 'https://www.reddit.com/.rss',
+  'https://xkcd.com/rss.xml'
+// 'https://feeds.soundcloud.com/users/soundcloud%3Ausers%3A211911700/sounds.rss'
 ];
 
+const WRITER_STORAGE = './writer-storage';
+const HRSS_STORE_PREFIX = 'hrss';
+const HRSS_KEYS_STORE_SUFFIX = 'keys';
+const HRSS_FEED_STORE_SUFFIX = 'feed';
+const HRSS_BLOB_STORE_SUFFIX = 'blob';
+
+function storeNames ({ prefix = HRSS_STORE_PREFIX, keysSuffix = HRSS_KEYS_STORE_SUFFIX, feedSuffix = HRSS_FEED_STORE_SUFFIX, blosbSuffix = HRSS_BLOB_STORE_SUFFIX } = {}) {
+  return {
+    feed: `${prefix}-${feedSuffix}`,
+    blobs: `${prefix}-${blosbSuffix}`
+  };
+}
+
+function getStores ({ storeageName = WRITER_STORAGE, ...rest } = {}) {
+  const store = new Corestore(storeageName);
+  const { feed: feedName, blobs: blobsName } = storeNames({ ...rest });
+  const feed = store.get({ name: feedName });
+  const blobs = store.get({ name: blobsName });
+  return { feed, blobs };
+}
+
+(async () => {
+  getStores();
+})();
+/*
 (async () => {
 
-  const core = new Hypercore('./writer-storage');
+  const core = new Hypercore(WRITER_STORAGE);
   await core.ready();
   const items = new Items({core});
 
@@ -27,3 +53,4 @@ const urls = [
   }
 
 })();
+*/
