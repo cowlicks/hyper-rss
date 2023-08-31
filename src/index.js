@@ -18,6 +18,7 @@ const HRSS_BLOB_STORE_SUFFIX = 'blob';
 
 function storeNames ({ prefix = HRSS_STORE_PREFIX, keysSuffix = HRSS_KEYS_STORE_SUFFIX, feedSuffix = HRSS_FEED_STORE_SUFFIX, blosbSuffix = HRSS_BLOB_STORE_SUFFIX } = {}) {
   return {
+    keys: `${prefix}-${keysSuffix}`,
     feed: `${prefix}-${feedSuffix}`,
     blobs: `${prefix}-${blosbSuffix}`
   };
@@ -25,14 +26,35 @@ function storeNames ({ prefix = HRSS_STORE_PREFIX, keysSuffix = HRSS_KEYS_STORE_
 
 function getStores ({ storeageName = WRITER_STORAGE, ...rest } = {}) {
   const store = new Corestore(storeageName);
-  const { feed: feedName, blobs: blobsName } = storeNames({ ...rest });
+  const { keys: keysName, feed: feedName, blobs: blobsName } = storeNames({ ...rest });
+  const keys = store.get({ name: keysName, valueEncoding: 'json' });
   const feed = store.get({ name: feedName });
   const blobs = store.get({ name: blobsName });
-  return { feed, blobs };
+  return { keys, feed, blobs };
 }
 
+async function initWriterCores ({ ...opts } = {}) {
+  const { keys, feed, blobs } = getStores({ ...opts });
+
+  await Promise.all([keys.ready(), feed.ready(), blobs.ready()]);
+
+  if (keys.length === 0) {
+    await keys.append({
+      keys: {
+        feed: Buffer.from(feed.key).toString('base64'),
+        blobs: Buffer.from(blobs.key).toString('base64')
+      }
+    });
+  }
+  return { keys, feed, blobs };
+}
+
+// async function initReaderCores({
+
 (async () => {
-  getStores();
+  const { keys, feed, blobs } = await initWriterCores();
+  console.log(keys.key.toString('base64'));
+  console.log(keys.discoveryKey.toString('base64'));
 })();
 /*
 (async () => {
