@@ -9,6 +9,7 @@
     "corestore": "^6.13.0",
     "hyperbee": "^2.15.0",
     "hypercore": "^10.18.3",
+    "hyperswarm": "^4.6.1",
     "rss-parser": "^3.13.0"
   },
   "devDependencies": {

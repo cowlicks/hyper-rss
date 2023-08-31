@@ -1,7 +1,9 @@
 import Hypercore from 'hypercore';
+import Hyperswarm from 'hyperswarm';
 import Parser from 'rss-parser';
 import Corestore from 'corestore';
 import { Items, itemsNotHyperized } from './items.js';
+import { getOnExit } from './utils.js';
 const parser = new Parser();
 
 const urls = [
@@ -24,8 +26,12 @@ function storeNames ({ prefix = HRSS_STORE_PREFIX, keysSuffix = HRSS_KEYS_STORE_
   };
 }
 
-function getStores ({ storeageName = WRITER_STORAGE, ...rest } = {}) {
+function getStore ({ storeageName = WRITER_STORAGE } = {}) {
   const store = new Corestore(storeageName);
+  return { store };
+}
+
+function getCores (store, { ...rest } = {}) {
   const { keys: keysName, feed: feedName, blobs: blobsName } = storeNames({ ...rest });
   const keys = store.get({ name: keysName, valueEncoding: 'json' });
   const feed = store.get({ name: feedName });
@@ -33,10 +39,20 @@ function getStores ({ storeageName = WRITER_STORAGE, ...rest } = {}) {
   return { keys, feed, blobs };
 }
 
-async function initWriterCores ({ ...opts } = {}) {
-  const { keys, feed, blobs } = getStores({ ...opts });
+function getStoreAndCores ({ ...opts }) {
+  const { store } = getStore({ ...opts });
+  const cores = getCores(store, { ...opts });
+  return { store, cores };
+}
+
+async function initWriter ({ ...opts } = {}) {
+  const { store, cores: { keys, feed, blobs } } = getStoreAndCores({ ...opts });
 
   await Promise.all([keys.ready(), feed.ready(), blobs.ready()]);
+
+  const swarm = new Hyperswarm();
+  swarm.join(keys.discoveryKey);
+  swarm.on('connection', conn => store.replicate(conn));
 
   if (keys.length === 0) {
     await keys.append({
@@ -46,33 +62,31 @@ async function initWriterCores ({ ...opts } = {}) {
       }
     });
   }
-  return { keys, feed, blobs };
+  return { store, swarm, cores: { keys, feed, blobs } };
 }
 
-// async function initReaderCores({
-
-(async () => {
-  const { keys, feed, blobs } = await initWriterCores();
-  console.log(keys.key.toString('base64'));
-  console.log(keys.discoveryKey.toString('base64'));
-})();
 /*
 (async () => {
+  const { store, swarm, cores: { keys, feed, blobs } } = await initWriter();
+  console.log(keys.key.toString('base64'));
+  console.log(keys.discoveryKey.toString('base64'));
+  setTimeout(() => process.exit(0), 500);
+})();
+*/
 
-  const core = new Hypercore(WRITER_STORAGE);
-  await core.ready();
-  const items = new Items({core});
+(async () => {
+  const { store, swarm, cores } = await initWriter();
+
+  const items = new Items({ core: cores.feed });
 
   for (const url of urls) {
-    let feed = await parser.parseURL(url);
+    const feed = await parser.parseURL(url);
     const missing = await itemsNotHyperized(feed.items, items.db);
     const batcher = items.db.batch();
-    for (const {key, rssItem} of missing) {
-      console.log(key, rssItem)
+    for (const { key, rssItem } of missing) {
+      console.log(key, rssItem);
       await batcher.put(key, JSON.stringify(rssItem));
     }
     await batcher.flush();
   }
-
 })();
-*/
