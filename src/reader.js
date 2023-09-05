@@ -67,10 +67,9 @@ class Reader {
 }
 
 (async () => {
-  const key = 'HSJfw15FsAcI8FKcvK5yErHUXunsT2baK623A8j5bno=';
+  const key = 'goo9i6uXyPJck7vaY+oz/afEqgc9BBRUSn7n6XwVZEg=';
   const reader = new Reader(key);
   await reader.init();
-  console.log('initialized');
   const stream = reader.bTrees.feed.createReadStream({}, { reverse: true });
   for await (const s of stream) {
     console.log(JSON.parse(s.value.toString()));

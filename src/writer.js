@@ -7,6 +7,7 @@ import goodbye from 'graceful-goodbye';
 
 import { base64FromBuffer } from './utils.js';
 import { itemsNotHyperized } from './items.js';
+import { getEnclosure } from './blobs.js';
 
 const WRITER_STORAGE = './writer-storage';
 const HRSS_STORE_PREFIX = 'hrss';
@@ -73,6 +74,23 @@ async function initWriter ({ ...opts } = {}) {
   };
 }
 
+async function addItem (key, item, feedBatcher, blobsBatcher) {
+  if (item.enclosure) {
+    await getEnclosure(item.enclosure);
+  }
+  await feedBatcher.put(key, JSON.stringify(item));
+}
+
+async function addMissing (missing, { feed, blobs }) {
+  const feedBatcher = feed.batch();
+  const blobsBatcher = blobs.batch();
+
+  for (const { key, rssItem } of missing) {
+    await addItem(key, rssItem, feedBatcher, blobsBatcher);
+  }
+  await Promise.all([feedBatcher.flush(), blobsBatcher.flush()]);
+}
+
 export class Writer {
   constructor (url, opts = {}) {
     const parser = new Parser();
@@ -96,23 +114,11 @@ export class Writer {
 
   async updateFeed () {
     const missing = await itemsNotHyperized(this.parsedRssFeed.items, this.bTrees.feed);
-    await addMissing(this.bTrees.feed, missing);
+    await addMissing(missing, this.bTrees);
     return missing;
   }
 
   discoveryKeyString () {
     return base64FromBuffer(this.cores.keys.key);
   }
-}
-
-async function addMissing (feedBTree, missing) {
-  const batcher = feedBTree.batch();
-
-  for (const { key, rssItem } of missing) {
-    console.log(`Adding item:
-    key = [${key}]
-`, rssItem);
-    await batcher.put(key, JSON.stringify(rssItem));
-  }
-  await batcher.flush();
 }
