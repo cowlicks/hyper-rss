@@ -28,3 +28,11 @@ export const getOnExit = () => {
   EXIT_EVENTS.forEach(eventName => process.on(eventName, (...exitArgs) => _onExit.onEvent(exitArgs)));
   return _onExit;
 };
+
+export function base64FromBuffer (buffer) {
+  return Buffer.from(buffer).toString('base64');
+}
+
+export function bufferFromBase64 (base64Str) {
+  return Buffer.from(base64Str, 'base64');
+}

@@ -5,6 +5,9 @@ import Corestore from 'corestore';
 import { itemsNotHyperized } from './items.js';
 import Hyperbee from 'hyperbee';
 
+import { base64FromBuffer } from './utils.js';
+import goodbye from 'graceful-goodbye';
+
 const urls = [
 // 'https://www.reddit.com/.rss',
   'https://xkcd.com/rss.xml'
@@ -44,27 +47,21 @@ function getStoreAndCores ({ ...opts }) {
   return { store, cores };
 }
 
-function getBTreesFromCores ({ cores, ...opts }) {
-  return {
-    feed: new Hyperbee(cores.feed),
-    blobs: new Hyperbee(cores.blobs)
-  };
-}
-
 async function initWriter ({ ...opts } = {}) {
   const { store, cores: { keys, feed, blobs } } = getStoreAndCores({ ...opts });
 
   await Promise.all([keys.ready(), feed.ready(), blobs.ready()]);
 
   const swarm = new Hyperswarm();
+  goodbye(() => swarm.destroy());
   swarm.join(keys.discoveryKey);
   swarm.on('connection', conn => store.replicate(conn));
 
   if (keys.length === 0) {
     await keys.append({
       keys: {
-        feed: Buffer.from(feed.key).toString('base64'),
-        blobs: Buffer.from(blobs.key).toString('base64')
+        feed: base64FromBuffer(feed.key),
+        blobs: base64FromBuffer(blobs.key)
       }
     });
   }
@@ -100,12 +97,17 @@ export class Writer {
         parsedRssFeed
       }
     );
+    return this;
   }
 
   async updateFeed () {
     const missing = await itemsNotHyperized(this.parsedRssFeed.items, this.bTrees.feed);
     await addMissing(this.bTrees.feed, missing);
     return missing;
+  }
+
+  discoveryKeyString () {
+    return base64FromBuffer(this.cores.keys.key);
   }
 }
 
@@ -128,5 +130,6 @@ async function addMissing (feedBTree, missing) {
     await writer.init();
     const added = await writer.updateFeed();
     console.log(`Added [${added.length}] items`);
+    console.log('To core with key', writer.discoveryKeyString());
   }
 })();
