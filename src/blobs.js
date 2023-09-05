@@ -7,7 +7,10 @@ function getUrl (url) {
   const queue = new AsyncQueue();
   https.get(url, res => {
     if (res.statusCode === 301 || res.statusCode === 302) {
-      queue.addAsyncIter(getUrl(res.headers.location));
+      (async () => {
+        await queue.addAsyncIter(getUrl(res.headers.location));
+        queue.done();
+      })();
       return;
     }
     res.on('data', chunk => {
