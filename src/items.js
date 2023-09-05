@@ -1,12 +1,5 @@
 import Hyperbee from 'hyperbee';
 
-export class Items {
-  constructor ({ core, hyperbeeOptions }) {
-    this.core = core;
-    this.db = new Hyperbee(core, hyperbeeOptions);
-  }
-}
-
 const defaultRssItemHasher = ({ guid }) => guid;
 
 // TODO use Hyperbee.batch

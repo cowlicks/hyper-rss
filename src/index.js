@@ -1,10 +1,9 @@
-import Hypercore from 'hypercore';
+// TODO add a reader that can read our feed from the writer
 import Hyperswarm from 'hyperswarm';
 import Parser from 'rss-parser';
 import Corestore from 'corestore';
-import { Items, itemsNotHyperized } from './items.js';
-import { getOnExit } from './utils.js';
-const parser = new Parser();
+import { itemsNotHyperized } from './items.js';
+import Hyperbee from 'hyperbee';
 
 const urls = [
 // 'https://www.reddit.com/.rss',
@@ -45,6 +44,13 @@ function getStoreAndCores ({ ...opts }) {
   return { store, cores };
 }
 
+function getBTreesFromCores ({ cores, ...opts }) {
+  return {
+    feed: new Hyperbee(cores.feed),
+    blobs: new Hyperbee(cores.blobs)
+  };
+}
+
 async function initWriter ({ ...opts } = {}) {
   const { store, cores: { keys, feed, blobs } } = getStoreAndCores({ ...opts });
 
@@ -62,22 +68,65 @@ async function initWriter ({ ...opts } = {}) {
       }
     });
   }
-  return { store, swarm, cores: { keys, feed, blobs } };
+
+  return {
+    store,
+    swarm,
+    cores: {
+      keys, feed, blobs
+    },
+    bTrees: {
+      feed: new Hyperbee(feed),
+      blobs: new Hyperbee(blobs)
+    }
+  };
 }
 
+export class Writer {
+  constructor (url, opts = {}) {
+    const parser = new Parser();
+    Object.assign(
+      this,
+      { url, opts, parser }
+    );
+  }
+
+  async init () {
+    const parsedRssFeed = await this.parser.parseURL(this.url);
+    Object.assign(
+      this,
+      {
+        ...(await initWriter(this.opts)),
+        parsedRssFeed
+      }
+    );
+  }
+
+  async updateFeed () {
+    const missing = await itemsNotHyperized(this.parsedRssFeed.items, this.bTrees.feed);
+    await addMissing(this.bTrees.feed, missing);
+    return missing;
+  }
+}
+
+async function addMissing (feedBTree, missing) {
+  const batcher = feedBTree.batch();
+
+  for (const { key, rssItem } of missing) {
+    console.log(`Adding item:
+    key = [${key}]
+`, rssItem);
+    await batcher.put(key, JSON.stringify(rssItem));
+  }
+  await batcher.flush();
+}
+
+/* do some writing */
 (async () => {
-  const { store, swarm, cores } = await initWriter();
-
-  const items = new Items({ core: cores.feed });
-
   for (const url of urls) {
-    const feed = await parser.parseURL(url);
-    const missing = await itemsNotHyperized(feed.items, items.db);
-    const batcher = items.db.batch();
-    for (const { key, rssItem } of missing) {
-      console.log(key, rssItem);
-      await batcher.put(key, JSON.stringify(rssItem));
-    }
-    await batcher.flush();
+    const writer = new Writer(url);
+    await writer.init();
+    const added = await writer.updateFeed();
+    console.log(`Added [${added.length}] items`);
   }
 })();
