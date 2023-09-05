@@ -23,13 +23,14 @@ function getUrl (url) {
   return queue;
 }
 
+// TODO rewrite url in the enclosure to anonymize it
 export async function getEnclosure (enclosure) {
-  console.log('getting enclosure with URL ', enclosure.url);
-  console.log(enclosure);
-  const stream = getUrl(enclosure.url);
-  let i = 0;
-  for await (const chunk of stream) {
-    console.log(`chun n=[${i}]`, chunk);
-    i += 1;
+  const chunks = [];
+  for await (const chunk of getUrl(enclosure.url)) {
+    chunks.push(chunk);
   }
+  return Buffer.concat(chunks);
+}
+
+export async function transformItem (item) {
 }
