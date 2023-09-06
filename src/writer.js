@@ -6,6 +6,7 @@ import Hyperbee from 'hyperbee';
 import goodbye from 'graceful-goodbye';
 
 import { base64FromBuffer } from './utils.js';
+import { log } from './log.js';
 import { itemsNotHyperized } from './items.js';
 import { getEnclosure } from './blobs.js';
 
@@ -76,10 +77,7 @@ async function initWriter ({ ...opts } = {}) {
 
 async function addItem (key, item, feedBatcher, blobsBatcher) {
   if (item.enclosure) {
-    console.log(item.enclosure);
     const data = await getEnclosure(item.enclosure);
-    console.log(data);
-    console.log(data.length);
   }
   await feedBatcher.put(key, JSON.stringify(item));
 }
@@ -88,7 +86,7 @@ async function addMissing (missing, { feed, blobs }) {
   const feedBatcher = feed.batch();
   const blobsBatcher = blobs.batch();
 
-  console.log(`# missing = [${missing.length}]`);
+  log.info(`# missing = [${missing.length}]`);
   for (const { key, rssItem } of missing) {
     await addItem(key, rssItem, feedBatcher, blobsBatcher);
     console.log('got item!');

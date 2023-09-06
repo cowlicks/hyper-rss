@@ -2,7 +2,6 @@ import Hyperbee from 'hyperbee';
 
 const defaultRssItemHasher = ({ guid }) => guid;
 
-// TODO use Hyperbee.batch
 export async function itemsNotHyperized (rssFeed, hyperbeeItemsDb, { hasher = defaultRssItemHasher } = {}) {
   const out = [];
   await hyperbeeItemsDb.ready();

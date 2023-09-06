@@ -37,6 +37,9 @@ export function bufferFromBase64 (base64Str) {
   return Buffer.from(base64Str, 'base64');
 }
 
+// Eventualy we should move this async stuff it's own library
+
+/// A promise that can be controlled externally with `.reject` and `.catch` methods.
 export function Deferred () {
   const o = {};
   const p = new Promise((resolve, reject) => Object.assign(o, { resolve, reject }));
