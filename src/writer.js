@@ -14,12 +14,20 @@ const WRITER_STORAGE = './writer-storage';
 const HRSS_STORE_PREFIX = 'hrss';
 const HRSS_KEYS_STORE_SUFFIX = 'keys';
 const HRSS_FEED_STORE_SUFFIX = 'feed';
+const HRSS_BLOB_KEYS_STORE_SUFFIX = 'blobKeys';
 const HRSS_BLOB_STORE_SUFFIX = 'blob';
 
-function storeNames ({ prefix = HRSS_STORE_PREFIX, keysSuffix = HRSS_KEYS_STORE_SUFFIX, feedSuffix = HRSS_FEED_STORE_SUFFIX, blosbSuffix = HRSS_BLOB_STORE_SUFFIX } = {}) {
+function storeNames ({
+  prefix = HRSS_STORE_PREFIX,
+  keysSuffix = HRSS_KEYS_STORE_SUFFIX,
+  feedSuffix = HRSS_FEED_STORE_SUFFIX,
+  blobKeysSuffix = HRSS_BLOB_KEYS_STORE_SUFFIX,
+  blosbSuffix = HRSS_BLOB_STORE_SUFFIX
+} = {}) {
   return {
     keys: `${prefix}-${keysSuffix}`,
     feed: `${prefix}-${feedSuffix}`,
+    blobKeys: `${prefix}-${blobKeysSuffix}`,
     blobs: `${prefix}-${blosbSuffix}`
   };
 }
@@ -30,23 +38,24 @@ function getStore ({ storeageName = WRITER_STORAGE } = {}) {
 }
 
 function getCores (store, { ...rest } = {}) {
-  const { keys: keysName, feed: feedName, blobs: blobsName } = storeNames({ ...rest });
+  const { keys: keysName, feed: feedName, blobKeys: blobKeysName, blobs: blobsName } = storeNames({ ...rest });
   const keys = store.get({ name: keysName, valueEncoding: 'json' });
   const feed = store.get({ name: feedName });
+  const blobKeys = store.get({ name: blobKeysName });
   const blobs = store.get({ name: blobsName });
-  return { keys, feed, blobs };
+  return { keys, feed, blobKeys, blobs };
 }
 
-function getStoreAndCores ({ ...opts }) {
+export function getStoreAndCores ({ ...opts } = {}) {
   const { store } = getStore({ ...opts });
   const cores = getCores(store, { ...opts });
   return { store, cores };
 }
 
 async function initWriter ({ ...opts } = {}) {
-  const { store, cores: { keys, feed, blobs } } = getStoreAndCores({ ...opts });
+  const { store, cores: { keys, feed, blobKeys, blobs } } = getStoreAndCores({ ...opts });
 
-  await Promise.all([keys.ready(), feed.ready(), blobs.ready()]);
+  await Promise.all([keys.ready(), feed.ready(), blobKeys.ready(), blobs.ready()]);
 
   const swarm = new Hyperswarm();
   goodbye(() => swarm.destroy());
@@ -57,6 +66,7 @@ async function initWriter ({ ...opts } = {}) {
     await keys.append({
       keys: {
         feed: base64FromBuffer(feed.key),
+        blobKeys: base64FromBuffer(blobKeys.key),
         blobs: base64FromBuffer(blobs.key)
       }
     });
@@ -66,10 +76,11 @@ async function initWriter ({ ...opts } = {}) {
     store,
     swarm,
     cores: {
-      keys, feed, blobs
+      keys, feed, blobKeys, blobs
     },
     bTrees: {
       feed: new Hyperbee(feed),
+      blobKeys: new Hyperbee(blobKeys),
       blobs: new Hyperbee(blobs)
     }
   };
@@ -82,7 +93,7 @@ async function addItem (key, item, feedBatcher, blobsBatcher) {
   await feedBatcher.put(key, JSON.stringify(item));
 }
 
-async function addMissing (missing, { feed, blobs }) {
+async function addMissing (missing, { feed, blobKeys, blobs }) {
   const feedBatcher = feed.batch();
   const blobsBatcher = blobs.batch();
 
@@ -115,9 +126,17 @@ export class Writer {
     return this;
   }
 
+  getMissing () {
+    return itemsNotHyperized(this.parsedRssFeed.items, this.bTrees.feed);
+  }
+
+  addNewItems (newItems) {
+    return addMissing(newItems, this.bTrees);
+  }
+
   async updateFeed () {
-    const missing = await itemsNotHyperized(this.parsedRssFeed.items, this.bTrees.feed);
-    await addMissing(missing, this.bTrees);
+    const missing = await this.getMissing();
+    await this.addNewItems(missing);
     return missing;
   }
 
