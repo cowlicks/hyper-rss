@@ -17,7 +17,7 @@ const HRSS_FEED_STORE_SUFFIX = 'feed';
 const HRSS_BLOB_KEYS_STORE_SUFFIX = 'blobKeys';
 const HRSS_BLOB_STORE_SUFFIX = 'blob';
 
-function storeNames ({
+export function storeNames ({
   prefix = HRSS_STORE_PREFIX,
   keysSuffix = HRSS_KEYS_STORE_SUFFIX,
   feedSuffix = HRSS_FEED_STORE_SUFFIX,
@@ -32,7 +32,7 @@ function storeNames ({
   };
 }
 
-function getStore ({ storeageName = WRITER_STORAGE } = {}) {
+export function getStore ({ storeageName = WRITER_STORAGE } = {}) {
   const store = new Corestore(storeageName);
   return { store };
 }
@@ -105,6 +105,7 @@ async function addMissing (missing, { feed, blobKeys, blobs }) {
   await Promise.all([feedBatcher.flush(), blobsBatcher.flush()]);
 }
 
+// TODO rewrite this to use Keyed blobs
 export class Writer {
   constructor (url, opts = {}) {
     const parser = new Parser();

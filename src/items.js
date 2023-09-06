@@ -24,3 +24,9 @@ export async function itemsNotHyperized (rssFeed, hyperbeeItemsDb, { hasher = de
   await batcher.flush();
   return out;
 }
+
+async function maybeHandleEnclosure (item, blobs = {}) {
+}
+
+export async function transformItem (item) {
+}

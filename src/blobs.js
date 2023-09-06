@@ -3,7 +3,7 @@ import { AsyncQueue } from './utils.js';
 import https from 'https';
 import Hyperbee from 'hyperbee';
 import Hyperblobs from 'hyperblobs';
-import { getStoreAndCores } from './writer.js';
+import { getStore, getStoreAndCores, storeNames } from './writer.js';
 import { withTmpDir, assert } from './test.js';
 
 /* Gets bytes from a url as an async iterable. Follows redirects */
@@ -37,6 +37,13 @@ export async function getEnclosure (enclosure) {
 }
 
 export class KeyedBlobs {
+  static fromStore (store, { ...rest } = {}) {
+    const { blobKeys: blobKeysName, blobs: blobsName } = storeNames({ ...rest });
+    const blobKeys = store.get({ name: blobKeysName });
+    const blobs = store.get({ name: blobsName });
+    return new KeyedBlobs(blobKeys, blobs);
+  }
+
   constructor (blobKeysCore, blobsCore) {
     Object.assign(this, {
       cores: {
@@ -83,4 +90,17 @@ async function _testkeyblobs (path) {
   assert(gotten.toString(), buff);
 }
 
-(async () => await withTmpDir((tmpd) => _testkeyblobs(tmpd)))();
+async function _testFromStoreKeyBlobs (tmpd) {
+  const key = 'foobar',
+    buff = Buffer.from('Hello, world!');
+  const { store } = getStore({ storageName: tmpd });
+  console.log(store);
+  const kb = KeyedBlobs.fromStore(store);
+  await kb.init();
+  await kb.put(key, buff);
+  const gotten = await kb.get(key);
+  assert(gotten.toString(), buff.toString());
+}
+
+// (async () => await withTmpDir((tmpd) => _testkeyblobs(tmpd)))();
+(async () => await withTmpDir((tmpd) => _testFromStoreKeyBlobs(tmpd)))();
