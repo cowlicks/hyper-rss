@@ -1,6 +1,8 @@
 import { AsyncQueue } from './utils.js';
 
 import https from 'https';
+import Hyperbee from 'hyperbee';
+import Hyperblobs from 'hyperblobs';
 
 /* Gets bytes from a url as an async iterable. Follows redirects */
 function getUrl (url) {
@@ -32,5 +34,26 @@ export async function getEnclosure (enclosure) {
   return Buffer.concat(chunks);
 }
 
-export async function transformItem (item) {
+// TESTME
+class KeyedBlobs {
+  constructor (keyCore, blobsCore) {
+    Object.assign(this, {
+      keys: new Hyperbee(keyCore),
+      blobs: new Hyperblobs(blobsCore),
+      cores: {
+        keyCore, blobsCore
+      }
+    });
+  }
+
+  async put (key, blob, { blobsOpts, beeOpts } = {}) {
+    const id = await this.blobs.put(blob, blobsOpts);
+    await this.keys.put(key, id, beeOpts);
+  }
+
+  async get (key, { blobsOpts, beeOpts } = {}) {
+    const { seq: _, value: id } = await this.keys.get(key, beeOpts);
+    const blob = await this.blobs.get(id, blobsOpts);
+    return blob;
+  }
 }
