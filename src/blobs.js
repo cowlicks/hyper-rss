@@ -4,10 +4,7 @@ import https from 'https';
 import Hyperbee from 'hyperbee';
 import Hyperblobs from 'hyperblobs';
 import { getStoreAndCores } from './writer.js';
-
-import { mkdtemp, rm } from 'node:fs/promises';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
+import { withTmpDir, assert } from './test.js';
 
 /* Gets bytes from a url as an async iterable. Follows redirects */
 function getUrl (url) {
@@ -39,7 +36,6 @@ export async function getEnclosure (enclosure) {
   return Buffer.concat(chunks);
 }
 
-// TESTME
 export class KeyedBlobs {
   constructor (blobKeysCore, blobsCore) {
     Object.assign(this, {
@@ -75,26 +71,6 @@ export class KeyedBlobs {
     return blob;
   }
 }
-
-const TMP_DIR_PREFIX = 'hrss-test-';
-
-async function withTmpDir (func, prefix = TMP_DIR_PREFIX) {
-  let tmpd;
-  try {
-    tmpd = await mkdtemp(join(tmpdir(), prefix));
-    console.log('SET TMP DIR TO', tmpd);
-    await func(tmpd);
-  } catch (err) {
-    console.error(err);
-    throw err;
-  } finally {
-    console.log('FINALLY BLOCK', console.log(tmpd));
-    if (tmpd) {
-      await rm(tmpd, { recursive: true, force: true });
-    }
-  }
-}
-
 async function _testkeyblobs (path) {
   const key = 'foobar',
     buff = Buffer.from('Hello, world!');
@@ -102,10 +78,9 @@ async function _testkeyblobs (path) {
   const { cores: { blobKeys, blobs } } = getStoreAndCores({ storeageName: path });
   const kb = new KeyedBlobs(blobKeys, blobs);
   await kb.init();
-  const res = await kb.put(key, buff);
-  console.log(res);
+  await kb.put(key, buff);
   const gotten = await kb.get(key);
-  console.log(gotten.toString());
+  assert(gotten.toString(), buff);
 }
 
 (async () => await withTmpDir((tmpd) => _testkeyblobs(tmpd)))();
