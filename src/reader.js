@@ -2,12 +2,14 @@ import Corestore from 'corestore';
 import goodbye from 'graceful-goodbye';
 import Hyperbee from 'hyperbee';
 import Hyperswarm from 'hyperswarm';
+import { log } from './log.js';
 import { base64FromBuffer, bufferFromBase64 } from './utils.js';
 
 const READER_STORAGE = './reader-storage';
 
 class Reader {
   constructor (discoveryKeyString) {
+    log.info(`Creating Reader for discovery key = [${discoveryKeyString}]`);
     Object.assign(
       this,
       {
@@ -68,12 +70,11 @@ class Reader {
   }
 }
 
-(async () => {
-  const key = 'goo9i6uXyPJck7vaY+oz/afEqgc9BBRUSn7n6XwVZEg=';
-  const reader = new Reader(key);
-  await reader.init();
+export async function _testReaderIntegration (tmpd, discoveryKeyString) {
+  const reader = new Reader(discoveryKeyString);
+  await reader.init({ storageName: tmpd });
   const stream = reader.bTrees.feed.createReadStream({}, { reverse: true });
   for await (const s of stream) {
     console.log(JSON.parse(s.value.toString()));
   }
-})();
+}

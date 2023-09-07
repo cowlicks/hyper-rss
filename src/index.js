@@ -2,7 +2,9 @@
 // If we want to be able to stream data from blobs, we would want to store it in something like hyperblobs
 
 // TODO add a reader that can read our feed from the writer
-import { Writer } from './writer.js';
+import { _testReaderIntegration } from './reader.js';
+import { withTmpDir } from './test.js';
+import { Writer, _testUpdateWriterIntegration } from './writer.js';
 
 const urls = [
 // 'https://www.reddit.com/.rss',
@@ -11,6 +13,7 @@ const urls = [
   'https://feed.skeptoid.com/'
 ];
 
+/* =
 (async () => {
   for (const url of urls) {
     const writer = new Writer(url);
@@ -28,4 +31,15 @@ const urls = [
     }, null);
     console.log(smallest);
   }
+})();
+*/
+
+(async () => {
+  await withTmpDir(async (tmpd) => {
+    const discoveryKeyString = await _testUpdateWriterIntegration(tmpd);
+    console.log('got disc key ', discoveryKeyString);
+    await withTmpDir(async (tmpd2) => {
+      await _testReaderIntegration(tmpd2, discoveryKeyString);
+    });
+  });
 })();

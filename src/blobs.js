@@ -103,4 +103,4 @@ async function _testFromStoreKeyBlobs (tmpd) {
 }
 
 // (async () => await withTmpDir((tmpd) => _testkeyblobs(tmpd)))();
-(async () => await withTmpDir((tmpd) => _testFromStoreKeyBlobs(tmpd)))();
+// (async () => await withTmpDir((tmpd) => _testFromStoreKeyBlobs(tmpd)))();

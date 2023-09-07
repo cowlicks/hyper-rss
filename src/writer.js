@@ -9,6 +9,8 @@ import { base64FromBuffer } from './utils.js';
 import { log } from './log.js';
 import { itemsNotHyperized } from './items.js';
 import { getEnclosure } from './blobs.js';
+import { swarmInit } from './swarm.js';
+import { withTmpDir } from './test.js';
 
 const WRITER_STORAGE = './writer-storage';
 const HRSS_STORE_PREFIX = 'hrss';
@@ -57,10 +59,8 @@ async function initWriter ({ ...opts } = {}) {
 
   await Promise.all([keys.ready(), feed.ready(), blobKeys.ready(), blobs.ready()]);
 
-  const swarm = new Hyperswarm();
-  goodbye(() => swarm.destroy());
-  swarm.join(keys.discoveryKey);
-  swarm.on('connection', conn => store.replicate(conn));
+  const { swarm, peerDiscovery } = swarmInit(keys.discoveryKey, store);
+  await peerDiscovery.flushed();
 
   if (keys.length === 0) {
     await keys.append({
@@ -86,21 +86,20 @@ async function initWriter ({ ...opts } = {}) {
   };
 }
 
-async function addItem (key, item, feedBatcher, blobsBatcher) {
+async function addItem (key, item, feedBatcher, _blobsBatcher) {
   if (item.enclosure) {
-    const data = await getEnclosure(item.enclosure);
+    const _data = await getEnclosure(item.enclosure);
   }
   await feedBatcher.put(key, JSON.stringify(item));
 }
 
-async function addMissing (missing, { feed, blobKeys, blobs }) {
+async function addMissing (missing, { feed, blobKeys: _, blobs }) {
   const feedBatcher = feed.batch();
   const blobsBatcher = blobs.batch();
 
   log.info(`# missing = [${missing.length}]`);
   for (const { key, rssItem } of missing) {
     await addItem(key, rssItem, feedBatcher, blobsBatcher);
-    console.log('got item!');
   }
   await Promise.all([feedBatcher.flush(), blobsBatcher.flush()]);
 }
@@ -108,6 +107,7 @@ async function addMissing (missing, { feed, blobKeys, blobs }) {
 // TODO rewrite this to use Keyed blobs
 export class Writer {
   constructor (url, opts = {}) {
+    log.info(`Creating writer for URL = [${url}]`);
     const parser = new Parser();
     Object.assign(
       this,
