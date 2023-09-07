@@ -1,4 +1,4 @@
-import { AsyncQueue } from './utils.js';
+import { AsyncQueue } from './utils/index.js';
 
 import https from 'https';
 import Hyperbee from 'hyperbee';

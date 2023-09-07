@@ -5,7 +5,7 @@ import Hyperbee from 'hyperbee';
 
 import goodbye from 'graceful-goodbye';
 
-import { base64FromBuffer } from './utils.js';
+import { base64FromBuffer } from './utils/index.js';
 import { log } from './log.js';
 import { itemsNotHyperized } from './items.js';
 import { getEnclosure } from './blobs.js';
