@@ -32,8 +32,8 @@ export function storeNames ({
   };
 }
 
-export function getStore ({ storeageName = WRITER_STORAGE } = {}) {
-  const store = new Corestore(storeageName);
+export function getStore ({ storageName = WRITER_STORAGE } = {}) {
+  const store = new Corestore(storageName);
   return { store };
 }
 
@@ -145,3 +145,13 @@ export class Writer {
     return base64FromBuffer(this.cores.keys.key);
   }
 }
+
+export async function _testUpdateWriterIntegration (tmpd) {
+  const url = 'https://xkcd.com/rss.xml';
+  const writer = new Writer(url, { storageName: tmpd });
+  await writer.init();
+  await writer.updateFeed();
+  return writer.discoveryKeyString();
+}
+
+// (async () => await withTmpDir(async (tmpd) => await _testUpdateWriterIntegration(tmpd)))();

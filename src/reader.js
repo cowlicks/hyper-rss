@@ -17,6 +17,7 @@ class Reader {
   }
 
   async init ({ storageName = READER_STORAGE, ...opts } = {}) {
+    log.info(`Initializing Reader with storage at = [${storageName}]`);
     const swarm = new Hyperswarm();
     goodbye(() => swarm.destroy());
     const store = new Corestore(storageName);
@@ -28,7 +29,8 @@ class Reader {
 
     const foundPeers = store.findingPeers();
     swarm.join(keysCore.discoveryKey);
-    swarm.flush().then(() => foundPeers());
+    await swarm.flush();
+    foundPeers();
     await keysCore.update();
 
     if (keysCore.length === 0) {

@@ -78,11 +78,12 @@ export class KeyedBlobs {
     return blob;
   }
 }
+
 async function _testkeyblobs (path) {
   const key = 'foobar',
     buff = Buffer.from('Hello, world!');
 
-  const { cores: { blobKeys, blobs } } = getStoreAndCores({ storeageName: path });
+  const { cores: { blobKeys, blobs } } = getStoreAndCores({ storageName: path });
   const kb = new KeyedBlobs(blobKeys, blobs);
   await kb.init();
   await kb.put(key, buff);
@@ -94,7 +95,6 @@ async function _testFromStoreKeyBlobs (tmpd) {
   const key = 'foobar',
     buff = Buffer.from('Hello, world!');
   const { store } = getStore({ storageName: tmpd });
-  console.log(store);
   const kb = KeyedBlobs.fromStore(store);
   await kb.init();
   await kb.put(key, buff);
