@@ -5,6 +5,9 @@
   "main": "src/index.js",
   "author": "Blake Griffith <blake.a.griffith@gmail.com>",
   "license": "MIT",
+  "scripts": {
+      "test": "ava"
+  },
   "dependencies": {
     "corestore": "^6.13.0",
     "graceful-goodbye": "^1.3.0",
@@ -15,6 +18,7 @@
     "rss-parser": "^3.13.0"
   },
   "devDependencies": {
+    "ava": "^5.3.1",
     "eslint": "^8.13.0",
     "eslint-config-semistandard": "^17.0.0",
     "eslint-config-standard": "^17.0.0",
