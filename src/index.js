@@ -3,7 +3,8 @@
 
 // TODO add a reader that can read our feed from the writer
 import { _testReaderIntegration } from './reader.js';
-import { withTmpDir } from './test.js';
+import { wait } from './utils/async.js';
+import { withTmpDir } from './utils/tests.js';
 import { Writer, _testUpdateWriterIntegration } from './writer.js';
 
 const urls = [
@@ -34,12 +35,29 @@ const urls = [
 })();
 */
 
-(async () => {
+const writeReadWithTmpDir = async () => {
   await withTmpDir(async (tmpd) => {
     const discoveryKeyString = await _testUpdateWriterIntegration(tmpd);
-    console.log('got disc key ', discoveryKeyString);
     await withTmpDir(async (tmpd2) => {
       await _testReaderIntegration(tmpd2, discoveryKeyString);
     });
   });
-})();
+};
+writeReadWithTmpDir();
+
+const justTmpReader = async () => {
+  const discoveryKeyString = 'afJWMzrLz9dO0qhx4M6r7XWlXjwCz2MOxHofYANoWIY=';
+  const tmpd2 = '/tmp/hrss-test-3uIDLR';
+  // console.log('got disc key ', discoveryKeyString ='afJWMzrLz9dO0qhx4M6r7XWlXjwCz2MOxHofYANoWIY=');
+  await _testReaderIntegration(tmpd2, discoveryKeyString);
+};
+
+/*
+const writeReadPersistantTest = async () => {
+  const discoveryKeyString = await _testUpdateWriterIntegration(undefined);
+  console.log('got disc key ', discoveryKeyString);
+  await _testReaderIntegration(undefined, discoveryKeyString);
+};
+
+writeReadPersistantTest();
+*/
