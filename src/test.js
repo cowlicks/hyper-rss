@@ -1,5 +1,4 @@
 import { KeyedBlobs } from './blobs.js';
-import { getUrl } from './utils/index.js';
 import { assert, withTmpDir } from './utils/tests.js';
 import { join } from 'node:path';
 import { stat } from 'node:fs/promises';
@@ -7,7 +6,7 @@ import { stat } from 'node:fs/promises';
 import test from 'ava';
 
 import { getStore, getStoreAndCores, Writer } from './writer.js';
-import { retry, wait } from './utils/async.js';
+import { retry } from './utils/async.js';
 
 const testUrl = 'https://xkcd.com/rss.xml';
 
