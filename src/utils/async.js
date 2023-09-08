@@ -60,3 +60,11 @@ export async function * waits (times) {
 export async function * periodicWaits (time) {
   yield * waits(repeat(time));
 }
+
+export async function takeAll (stream) {
+  const out = [];
+  for await (const x of stream) {
+    out.push(x);
+  }
+  return out;
+}
