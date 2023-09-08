@@ -1,45 +1,44 @@
-import { getUrl, KeyedBlobs } from './blobs.js';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { KeyedBlobs } from './blobs.js';
+import { getUrl } from './utils/index.js';
+import { assert, withTmpDir } from './utils/tests.js';
 import { join } from 'node:path';
-import { tmpdir } from 'node:os';
+import { stat } from 'node:fs/promises';
 
 import test from 'ava';
 
-import { getStore, getStoreAndCores } from './writer.js';
+import { getStore, getStoreAndCores, Writer } from './writer.js';
+import { retry, wait } from './utils/async.js';
 
-const TMP_DIR_PREFIX = 'hrss-test-';
+const testUrl = 'https://xkcd.com/rss.xml';
 
-test('foo', async t => {
-  const blobs = [];
-  for await (const b of getUrl('https://xkcd.com/rss.xml')) {
-    blobs.push(b);
-  }
-  const buff = Buffer.concat(blobs).toString();
-  console.log(buff);
-  t.pass();
+test('test new Writer saves config and loading from it does not change it', async t => {
+  await withTmpDir(async dir => {
+    const configFileName = join(dir, 'config.json');
+
+    // conf does not exist
+    t.throwsAsync(stat(configFileName));
+
+    const w = await Writer.forNewUrl(testUrl, { configFileName, storageName: dir });
+    await w.init();
+    t.teardown(async () => await w.close());
+
+    // conf created
+    const o = await stat(configFileName);
+
+    // close writer
+    await w.close();
+
+    const w2 = await Writer.fromConfig(configFileName);
+    await retry(async () => await w2.init());
+    t.teardown(async () => await w2.close());
+
+    const o2 = await stat(configFileName);
+
+    t.is(o.mtimeMs, o2.mtimeMs, 'File not modified by being loaded');
+    t.pass();
+  });
 });
 
-export async function withTmpDir (func, prefix = TMP_DIR_PREFIX) {
-  let tmpd;
-  try {
-    tmpd = await mkdtemp(join(tmpdir(), prefix));
-    await func(tmpd);
-  } catch (err) {
-    console.error(err);
-    throw err;
-  } finally {
-    if (tmpd) {
-      await rm(tmpd, { recursive: true, force: true });
-    }
-  }
-}
-
-export function assert (a, b) {
-  // eslint-disable-next-line eqeqeq
-  if (a != b) {
-    throw new Error(`assertion failed lhs = [${a}] does not equal rhs = [${b}]`);
-  }
-}
 async function _testkeyblobs (path) {
   const key = 'foobar',
     buff = Buffer.from('Hello, world!');
@@ -62,5 +61,17 @@ async function _testFromStoreKeyBlobs (tmpd) {
   assert(gotten.toString(), buff.toString());
 }
 
+// import { withTmpDir } from './utils/tests.js';
 // (async () => await withTmpDir((tmpd) => _testkeyblobs(tmpd)))();
 // (async () => await withTmpDir((tmpd) => _testFromStoreKeyBlobs(tmpd)))();
+// (async () => await withTmpDir(async (tmpd) => await _testUpdateWriterIntegration(tmpd)))();
+/*
+
+(async () => {
+  const name = 'foo.json';
+  const data = { stuff: 66, yo: 'dog' };
+  await writeJsonFile(name, data);
+  const result = await readJsonFile(name);
+  console.log(result);
+})();
+*/
