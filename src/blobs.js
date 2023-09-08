@@ -1,31 +1,7 @@
-import { AsyncQueue } from './utils/index.js';
-
-import https from 'https';
 import Hyperbee from 'hyperbee';
 import Hyperblobs from 'hyperblobs';
-import { getStore, getStoreAndCores, storeNames } from './writer.js';
-
-/* Gets bytes from a url as an async iterable. Follows redirects */
-export function getUrl (url) {
-  const queue = new AsyncQueue();
-  https.get(url, res => {
-    if (res.statusCode === 301 || res.statusCode === 302) {
-      (async () => {
-        await queue.addAsyncIter(getUrl(res.headers.location));
-        queue.done();
-      })();
-      return;
-    }
-    res.on('data', chunk => {
-      queue.push(chunk);
-    });
-    res.on('end', () => {
-      queue.done();
-    });
-  });
-  return queue;
-}
-
+import { storeNames } from './writer.js';
+import { getUrl } from './utils/index.js';
 // TODO rewrite url in the enclosure to anonymize it
 export async function getEnclosure (enclosure) {
   const chunks = [];
