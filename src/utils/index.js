@@ -146,10 +146,14 @@ export class AsyncQueue {
   }
 }
 
-export async function writeJsonFile (fileName, data) {
+export async function writeFile (fileName, data) {
   const fh = await open(fileName, 'w+');
-  await fh.write(JSON.stringify(data));
+  await fh.write(data);
   await fh.close();
+}
+
+export async function writeJsonFile (fileName, data) {
+  await writeFile(fileName, JSON.stringify(data));
 }
 
 export async function readJsonFile (fileName) {
