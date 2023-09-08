@@ -3,7 +3,8 @@ import goodbye from 'graceful-goodbye';
 import Hyperbee from 'hyperbee';
 import Hyperswarm from 'hyperswarm';
 import { log } from './log.js';
-import { base64FromBuffer, bufferFromBase64 } from './utils/index.js';
+import { wait } from './utils/async.js';
+import { bufferFromBase64 } from './utils/index.js';
 
 const READER_STORAGE = './reader-storage';
 
@@ -20,7 +21,7 @@ class Reader {
 
   async init ({ storageName = READER_STORAGE, ...opts } = {}) {
     log.info(`Initializing Reader with storage at = [${storageName}]`);
-    const swarm = new Hyperswarm();
+    const swarm = new Hyperswarm({ ...opts });
     goodbye(() => swarm.destroy());
     const store = new Corestore(storageName);
 
@@ -36,7 +37,7 @@ class Reader {
     await keysCore.update();
 
     if (keysCore.length === 0) {
-      console.log('Could not connect to the writer peer');
+      console.error('Could not connect to the writer peer');
       process.exit(1);
     }
 
@@ -46,6 +47,10 @@ class Reader {
 
     const feedCore = store.get({ key: bufferFromBase64(keys.feed) });
     const blobsCore = store.get({ key: bufferFromBase64(keys.blobs) });
+
+    // TODO is this needed???
+    await Promise.all([feedCore.ready(), blobsCore.ready()]);
+    await Promise.all([feedCore.update(), blobsCore.update()]);
 
     const feedBTree = new Hyperbee(feedCore);
     const blobsBTree = new Hyperbee(blobsCore);
@@ -63,7 +68,8 @@ class Reader {
         bTrees: {
           feed: feedBTree,
           blobs: blobsBTree
-        }
+        },
+        storageName
       }
     );
     return this;
@@ -73,8 +79,17 @@ class Reader {
 export async function _testReaderIntegration (tmpd, discoveryKeyString) {
   const reader = new Reader(discoveryKeyString);
   await reader.init({ storageName: tmpd });
+  let updated = await reader.bTrees.feed.update();
+  updated = await reader.cores.feed.update();
+  const l = await reader.cores.feed.length;
+
   const stream = reader.bTrees.feed.createReadStream({}, { reverse: true });
+  const out = [];
   for await (const s of stream) {
-    console.log(JSON.parse(s.value.toString()));
+    out.push(JSON.parse(s.value.toString()));
   }
+  if (out.length === 0) {
+    throw new Error('no stream parts found!!!!');
+  }
+  return out;
 }
