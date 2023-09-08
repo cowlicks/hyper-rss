@@ -202,7 +202,7 @@ export class Writer {
 }
 
 export async function _testUpdateWriterIntegration (tmpd) {
-  const url = 'https://xkcd.com/rss.xml';
+  const _url = 'https://xkcd.com/rss.xml';
   const writer = await Writer.fromConfig();
   await writer.init();
   await writer.updateFeed();
