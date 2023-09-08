@@ -4,7 +4,7 @@ module.exports = {
   ],
   rules: {
     'one-var': 0,
-    'no-unused-vars': ['error', { varsIgnorePattern: '^_' }]
+    'no-unused-vars': ['error', { varsIgnorePattern: '^_', argsIgnorePattern: '^_' }]
   }
 
 };
