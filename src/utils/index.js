@@ -1,3 +1,7 @@
+import { open } from 'node:fs/promises';
+
+export * from './net.js';
+
 // For fully featured listener see privacypossum src/js/utils:listenerMixin
 class EventListener {
   constructor () {
@@ -140,4 +144,15 @@ export class AsyncQueue {
       }
     };
   }
+}
+
+export async function writeJsonFile (fileName, data) {
+  const fh = await open(fileName, 'w+');
+  await fh.write(JSON.stringify(data));
+  await fh.close();
+}
+
+export async function readJsonFile (fileName) {
+  const fh = await open(fileName);
+  return JSON.parse(await fh.readFile());
 }
