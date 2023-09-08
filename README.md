@@ -1,3 +1,14 @@
+# Tasks
+
+* I want to be able to mirror an existing RSS feed locally for testing. The
+  mirroring stuff can go into src/tools/.
+
+* Create a simple e2e test between a reader and writer.
+
+* write tests:
+  - test writing
+  - test reading from writer
+
 # Goals
 
 * Writer defaults should provide a consistent level of protection against identifying who created the stream. Just that all URL's which we download data from should removed. One way to do this, the writer can keep a secret, along with it's URL. This secret can be used as a salt to hash the URL's with. Then these hashed URL's can be used to identify data. Providing total anonymity is beyond our scope. However we sholud allow for writers to be configured manually to mutate/randomize/tweak incoming data to prevent fingerprinting.
