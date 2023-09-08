@@ -6,7 +6,8 @@
   "author": "Blake Griffith <blake.a.griffith@gmail.com>",
   "license": "MIT",
   "scripts": {
-      "test": "ava"
+      "test": "ava",
+      "lint": "npx eslint src/*"
   },
   "dependencies": {
     "corestore": "^6.13.0",
