@@ -133,3 +133,4 @@ dist
 yarn.lock
 writer-storage/
 reader-storage/
+writer-config.json
