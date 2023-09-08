@@ -7,13 +7,6 @@ import { wait } from './utils/async.js';
 import { withTmpDir } from './utils/tests.js';
 import { Writer, _testUpdateWriterIntegration } from './writer.js';
 
-const urls = [
-// 'https://www.reddit.com/.rss',
-  // 'https://xkcd.com/rss.xml',
-  // 'https://feeds.soundcloud.com/users/soundcloud%3Ausers%3A211911700/sounds.rss',
-  'https://feed.skeptoid.com/'
-];
-
 /* =
 (async () => {
   for (const url of urls) {
