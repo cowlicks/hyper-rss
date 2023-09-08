@@ -6,10 +6,11 @@
   "author": "Blake Griffith <blake.a.griffith@gmail.com>",
   "license": "MIT",
   "scripts": {
-      "test": "ava",
-      "lint": "npx eslint src/*"
+    "test": "ava",
+    "lint": "npx eslint src/*"
   },
   "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
     "corestore": "^6.13.0",
     "graceful-goodbye": "^1.3.0",
     "hyperbee": "^2.15.0",
