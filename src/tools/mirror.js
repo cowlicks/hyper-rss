@@ -25,18 +25,19 @@ export async function writeFromUrl (fileName, url) {
   return str;
 }
 
-export async function mirrorRss (url) {
-  const parse = new Parser();
-  const parsed = await parse.parseURL(url);
-  return parsed;
-}
-
 export async function downloadRss (name, testUrls) {
   const url = testUrls[name];
   const dir = rssLocation(name);
   await mkdir(dir, { recursive: true });
   const str = await writeFromUrl(join(dir, 'feed.rss'), url);
   return str;
+}
+
+async function downloadAllTestUrls (testUrls) {
+  for (const name of Object.keys(testUrls)) {
+    console.log(`downloading [${name}]`);
+    await downloadRss(name, testUrls);
+  }
 }
 
 export async function serveRss (name) {
@@ -59,10 +60,8 @@ const urlFromAddress = ({ address, family, port }) => {
 
 const getFeedUrl = (addrObj) => `${urlFromAddress(addrObj)}/feed.rss`;
 
-async function withRssServer (name, func) {
+export async function withRssServer (name, func) {
   const server = await serveRss(name);
-  const foo = server.address();
-  console.log(foo);
 
   const feedUrl = getFeedUrl(server.address());
 
@@ -76,14 +75,3 @@ async function withRssServer (name, func) {
     throw e;
   }
 }
-
-(async () => {
-  const name = 'xkcd';
-  await withRssServer(name, async (url) => {
-    console.log(url);
-    const p = new Parser();
-    const x = await p.parseURL(url);
-    console.log('?????????????????????????????????????/');
-    console.log(x);
-  });
-})();
