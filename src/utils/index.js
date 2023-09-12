@@ -1,4 +1,5 @@
-import { open } from 'node:fs/promises';
+import { open, mkdir } from 'node:fs/promises';
+import { dirname } from 'node:path';
 
 export * from './net.js';
 
@@ -146,7 +147,11 @@ export class AsyncQueue {
   }
 }
 
-export async function writeFile (fileName, data) {
+export async function writeFile (fileName, data, options = {}) {
+  if (options.createDir) {
+    const dir = dirname(fileName);
+    await mkdir(dir, { recursive: true });
+  }
   const fh = await open(fileName, 'w+');
   await fh.write(data);
   await fh.close();
@@ -159,4 +164,38 @@ export async function writeJsonFile (fileName, data) {
 export async function readJsonFile (fileName) {
   const fh = await open(fileName);
   return JSON.parse(await fh.readFile());
+}
+
+export function objectMap (o, func) {
+  return Object.fromEntries(func([...Object.entries(o)]));
+}
+
+export const renameFields = (obj, renames) => {
+  const renameMap = new Map(renames);
+  return objectMap(obj, kvArr => {
+    return kvArr.map(([k, v]) => (renameMap.has(k) ? [renameMap.get(k), v] : [k, v]));
+  });
+};
+
+export function orderObjArr (ordering, elements) {
+  const orderSet = new Set(ordering);
+  const elementMap = new Map(elements);
+  const out = [];
+  for (const o of orderSet) {
+    if (elementMap.has(o)) {
+      out.push([o, elementMap.get(o)]);
+      elementMap.delete(o);
+    }
+  }
+  out.push(...elementMap.entries());
+  return out;
+}
+
+export function orderObj (ordering, o) {
+  return objectMap(o, arr => orderObjArr(ordering, arr));
+}
+
+export function filterObj (filterFields, o) {
+  const filters = new Set(filterFields);
+  return objectMap(o, arr => arr.filter(([k, _v]) => !filters.has(k)));
 }
