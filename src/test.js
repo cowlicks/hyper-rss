@@ -1,5 +1,6 @@
 import { KeyedBlobs } from './blobs.js';
 import { assert, withTmpDir } from './utils/tests.js';
+import { print } from './dev.js';
 import { join } from 'node:path';
 import { stat } from 'node:fs/promises';
 
@@ -7,8 +8,89 @@ import test from 'ava';
 
 import { getStore, getStoreAndCores, Writer } from './writer.js';
 import { retry } from './utils/async.js';
+import { withRssServer, download } from './tools/mirror.js';
+import { TEST_URLS } from './const.js';
+import Parser from 'rss-parser';
+import { parseString, Builder } from 'xml2js';
+
+import util from 'node:util';
 
 const testUrl = 'https://xkcd.com/rss.xml';
+
+const jsonFromXml = (xml) => new Promise((resolve, reject) => parseString(xml, (err, result) => err ? reject(err) : resolve(result)));
+
+const xmlFromJson = (json, opts = {}) => (new Builder({ renderOpts: { pretty: false }, ...opts })).buildObject(json);
+const rssParse = (xmlStr) => (new Parser()).parseString(xmlStr);
+
+function objectMap (o, func) {
+  return Object.fromEntries(func([...Object.entries(o)]));
+}
+
+export const renameFields = (obj, renames) => {
+  const renameMap = new Map(renames);
+  return objectMap(obj, kvArr => {
+    return kvArr.map(([k, v]) => (renameMap.has(k) ? [renameMap.get(k), v] : [k, v]));
+  });
+};
+
+function orderObjArr (ordering, elements) {
+  const orderSet = new Set(ordering);
+  const elementMap = new Map(elements);
+  const out = [];
+  for (const o of orderSet) {
+    if (elementMap.has(o)) {
+      out.push([o, elementMap.get(o)]);
+      elementMap.delete(o);
+    }
+  }
+  out.push(...elementMap.entries());
+  return out;
+}
+
+function orderObj (ordering, o) {
+  return objectMap(o, arr => orderObjArr(ordering, arr));
+}
+
+export function filterObj (filterFields, o) {
+  const filters = new Set(filterFields);
+  return objectMap(o, arr => arr.filter(([k, _v]) => !filters.has(k)));
+}
+
+const parsedBackToXml = (obj) => {
+  let tmp = { ...obj };
+  tmp.items = tmp.items
+    .map(item => renameFields(item, [['content', 'description']]))
+    .map(item => filterObj(['isoDate', 'contentSnippet'], item))
+    .map(item => orderObj(['title', 'link', 'description', 'pubDate', 'guid'], item));
+  tmp = renameFields(tmp, [['items', 'item']]);
+  return {
+    rss: {
+      $: {
+        version: '2.0'
+      },
+      channel: orderObj(['title', 'link', 'description', 'language', 'channel'], tmp)
+    }
+  };
+};
+
+// does orig str equal dbl parsed?
+test('Test parse RSS feed and turn it back into the same XML', async t => {
+  await withRssServer('xkcd', async (url) => {
+    const downloaded = await download(url);
+
+    const rawJson = await jsonFromXml(downloaded);
+    let feedJson = await rssParse(downloaded);
+
+    feedJson = parsedBackToXml(feedJson);
+
+    const fromParsed = xmlFromJson(feedJson);
+    const fromRaw = xmlFromJson(rawJson);
+
+    t.is(fromParsed, fromRaw);
+
+    t.pass();
+  });
+});
 
 test('test new Writer saves config and loading from it does not change it', async t => {
   await withTmpDir(async dir => {
