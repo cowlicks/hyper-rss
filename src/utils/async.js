@@ -61,6 +61,15 @@ export async function * periodicWaits (time) {
   yield * waits(repeat(time));
 }
 
+export async function * monitorStream (stream, func) {
+  let i = 0;
+  for await (const item of stream) {
+    func(i, item);
+    yield item;
+    i += 1;
+  }
+}
+
 export async function takeAll (stream) {
   const out = [];
   for await (const x of stream) {

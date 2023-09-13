@@ -3,6 +3,12 @@ import { dirname } from 'node:path';
 
 export * from './net.js';
 
+const alph = 'abcdefghijklmnopqrstuvwxyz';
+
+const randName = (len = 6) => {
+  return new Array(len).fill(0).map(() => alph[Math.floor(Math.random() * 26)]).join('');
+};
+
 // For fully featured listener see privacypossum src/js/utils:listenerMixin
 class EventListener {
   constructor () {
@@ -70,7 +76,8 @@ export class AsyncQueue {
     Object.assign(this, {
       _queue: [],
       _waiter: null,
-      _done: false
+      _done: false,
+      name: randName()
     });
   }
 
@@ -163,7 +170,9 @@ export async function writeJsonFile (fileName, data) {
 
 export async function readJsonFile (fileName) {
   const fh = await open(fileName);
-  return JSON.parse(await fh.readFile());
+  const out = JSON.parse(await fh.readFile());
+  await fh.close();
+  return out;
 }
 
 export function objectMap (o, func) {
