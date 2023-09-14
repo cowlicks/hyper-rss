@@ -14,6 +14,8 @@ import { createHash } from 'node:crypto';
 
 import { print } from '../dev.js';
 
+const RSS_PATH = 'rss.xml';
+const DEFAULT_LOCAL_ORIGIN = 'http://localhost:8080';
 const rssLocation = (name) => join(DOWNLOAD_DIR_NAME, name);
 
 export async function downloadToBuffer (url) {
@@ -130,7 +132,7 @@ export async function mutateRss (rssXmlStr, func) {
   return xmlFromJson(rssStyleJson);
 }
 
-export async function saveUrlAsHash (url, { pathPrefix = './', urlBase = 'http://localhost:8080/' } = {}) {
+export async function saveUrlAsHash (url, { pathPrefix = './', origin = DEFAULT_LOCAL_ORIGIN } = {}) {
   console.log(`Downloading URL: ${url}`);
   const parts = url.split('.');
   // TODO this was required for imgs to render
@@ -145,7 +147,9 @@ export async function saveUrlAsHash (url, { pathPrefix = './', urlBase = 'http:/
   const relPath = join('files', hash);
   const fullPath = join(pathPrefix, relPath);
   await writeFile(fullPath, buffer, { createDir: true });
-  return `${urlBase}${relPath}`;
+  const newUrl = new URL(origin);
+  newUrl.pathname = relPath;
+  return newUrl.href;
 }
 
 export async function rewriteImage (item, options) {
@@ -201,7 +205,7 @@ export async function saveRssToDiskFromUrl (url, { pathPrefix = './', maxItems =
   });
   console.log('writing new xml');
   print(newXml);
-  await writeFile(join(pathPrefix, 'rss.xml'), newXml, { createDir: true });
+  await writeFile(join(pathPrefix, RSS_PATH), newXml, { createDir: true });
   print('xml file written');
 }
 async function downloadMirrorRss (name, testUrls, options = {}) {
@@ -216,31 +220,40 @@ async function replaceInFile (path, before, after, { encoding = 'utf8', ...optio
   await writeFile(path, afterContent, encoding);
 }
 
-async function serveRssFeed (name, testUrls) {
-  // find directory
+async function serveRssFeed (name, func) {
+  // find the rss directory
   const mirrorDir = join(MIRRORED_DIR, name);
   // create tmp dir
   await withTmpDir(async (tmpDir) => {
-  // copy dir to tmp dir
-    print(tmpDir);
+    // copy dir to tmp dir
     await cp(mirrorDir, tmpDir, { recursive: true });
     // run webserver from tmp dir
     const server = await serveDirectory(tmpDir);
     // get webserver current port
-    const url = urlFromAddress(server.address());
-    const rssXml = join(tmpDir, 'rss.xml');
-    const beforeUrl = 'http://localhost:8080';
+    const urlStr = urlFromAddress(server.address());
+
+    const url = new URL(urlStr);
+    url.hostname = 'localhost';
+
+    const rssXmlPath = join(tmpDir, RSS_PATH);
+    const beforeOrigin = DEFAULT_LOCAL_ORIGIN;
+
     // search and replace localhost:8080 with localhost:NEW_PORT
-    replaceInFile(rssXml, beforeUrl, url);
-    await wait(1e3 * 300);
+    replaceInFile(rssXmlPath, beforeOrigin, url.origin);
+
+    // call the func
+    await func();
+
+    // close the server
+    await (new Promise(resolve => server.close(resolve)));
   });
-  // return func to close server
 }
-(async () => {
-  await serveRssFeed(CHAPO);
-})();
 
 /*
+(async () => {
+  await serveRssFeed(CHAPO, () => wait(3 * 1e2 * 1e3));
+})();
+
 (async () => {
   const maxItems = 3;
   // This is broken downloading does not give an actual rss feed
