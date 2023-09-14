@@ -1,4 +1,4 @@
-import { mkdir } from 'node:fs/promises';
+import { mkdir, cp, readFile } from 'node:fs/promises';
 import path, { join } from 'node:path';
 
 import * as cheerio from 'cheerio';
@@ -7,7 +7,7 @@ import Parser from 'rss-parser';
 import { parseString, Builder } from 'xml2js';
 
 import { getUrl, writeFile, renameFields, filterObj, orderObj } from '../utils/index.js';
-import { takeAll } from '../utils/async.js';
+import { takeAll, wait } from '../utils/async.js';
 import { withTmpDir } from '../utils/tests.js';
 import { CHAPO, DOWNLOAD_DIR_NAME, MIRRORED_DIR, REDDIT, SKEPTOID, SRC_DIR, TEST_URLS, XKCD } from '../const.js';
 import { createHash } from 'node:crypto';
@@ -17,9 +17,8 @@ import { print } from '../dev.js';
 const rssLocation = (name) => join(DOWNLOAD_DIR_NAME, name);
 
 export async function downloadToBuffer (url) {
-  const stream = await getUrl(url);
+  const stream = getUrl(url);
   const parts = await takeAll(stream);
-  console.log('done with url', url);
   return Buffer.concat(parts);
 }
 
@@ -49,10 +48,9 @@ async function _downloadAllTestUrls (testUrls) {
   }
 }
 
-export async function serveRss (name) {
+export async function serveDirectory (path) {
   const app = express();
-  const dir = rssLocation(name);
-  app.use(express.static(dir));
+  app.use(express.static(path));
   const server = await new Promise(resolve => {
     const out = app.listen(() => {
       resolve(out);
@@ -61,6 +59,11 @@ export async function serveRss (name) {
   });
   console.log(`Running on port ${server?.address().port}`);
   return server;
+}
+
+export async function serveRss (name) {
+  const dir = rssLocation(name);
+  return serveDirectory(dir);
 }
 
 const urlFromAddress = ({ address, family, port }) => {
@@ -168,14 +171,13 @@ export async function rewriteEnclosure (item, options) {
   }
 
   const newUrl = await saveUrlAsHash(item.enclosure.url, { ...options });
-  // item.enclosure.url = newUrl;
-  item.enclosure.url = 'http://foo.com';
+  item.enclosure.url = newUrl;
 
   return item;
 }
 
 export async function rewriteFeedItemAndSaveToDisk (item, options) {
-  // item = await rewriteImage(item, options);
+  item = await rewriteImage(item, options);
   item = await rewriteEnclosure(item, options);
   return item;
 }
@@ -202,30 +204,50 @@ export async function saveRssToDiskFromUrl (url, { pathPrefix = './', maxItems =
   await writeFile(join(pathPrefix, 'rss.xml'), newXml, { createDir: true });
   print('xml file written');
 }
-
 async function downloadMirrorRss (name, testUrls, options = {}) {
   const mirrorPath = join(MIRRORED_DIR, name);
   await saveRssToDiskFromUrl(testUrls[name], { pathPrefix: mirrorPath, ...options });
+}
+
+async function replaceInFile (path, before, after, { encoding = 'utf8', ...options } = {}) {
+  const beforeContent = await readFile(path, { encoding });
+  const regex = new RegExp(before, 'g');
+  const afterContent = beforeContent.replace(regex, after);
+  await writeFile(path, afterContent, encoding);
 }
 
 async function serveRssFeed (name, testUrls) {
   // find directory
   const mirrorDir = join(MIRRORED_DIR, name);
   // create tmp dir
-  withTmpDir;
+  await withTmpDir(async (tmpDir) => {
   // copy dir to tmp dir
-  // run webserver from tmp dir
-  // get webserver current port
-  // search and replace localhost:8080 with localhost:NEW_PORT
+    print(tmpDir);
+    await cp(mirrorDir, tmpDir, { recursive: true });
+    // run webserver from tmp dir
+    const server = await serveDirectory(tmpDir);
+    // get webserver current port
+    const url = urlFromAddress(server.address());
+    const rssXml = join(tmpDir, 'rss.xml');
+    const beforeUrl = 'http://localhost:8080';
+    // search and replace localhost:8080 with localhost:NEW_PORT
+    replaceInFile(rssXml, beforeUrl, url);
+    await wait(1e3 * 300);
+  });
   // return func to close server
 }
-
 (async () => {
-  const maxItems = 1;
+  await serveRssFeed(CHAPO);
+})();
+
+/*
+(async () => {
+  const maxItems = 3;
   // This is broken downloading does not give an actual rss feed
   // await downloadMirrorRss(REDDIT, TEST_URLS);
   // worked
   await downloadMirrorRss(CHAPO, TEST_URLS, { maxItems });
   await downloadMirrorRss(SKEPTOID, TEST_URLS, { maxItems });
-  // await downloadMirrorRss(XKCD, TEST_URLS);
+  await downloadMirrorRss(XKCD, TEST_URLS);
 })();
+*/
