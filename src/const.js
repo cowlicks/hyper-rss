@@ -21,3 +21,5 @@ export const ROOT_DIR = join(SRC_DIR, '..');
 
 export const MIRRORED_DIR_NAME = 'mirrors';
 export const MIRRORED_DIR = join(ROOT_DIR, MIRRORED_DIR_NAME);
+export const STOP_PROCESS = 'stop_process';
+export const SERVER_URL = 'server_url';

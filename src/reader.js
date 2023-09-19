@@ -5,6 +5,7 @@ import Hyperswarm from 'hyperswarm';
 import { log } from './log.js';
 import { wait } from './utils/async.js';
 import { bufferFromBase64 } from './utils/index.js';
+import { print } from './dev.js';
 
 const READER_STORAGE = './reader-storage';
 
@@ -74,14 +75,26 @@ class Reader {
     );
     return this;
   }
+
+  async close () {
+    await Promise.all([
+      this.cores.keys.close(),
+      this.cores.feed.close(),
+      // this.cores.blobKeys.close(),
+      this.cores.blobs.close(),
+      this.bTrees.feed.close(),
+      // this.bTrees.blobKeys.close(),
+      this.bTrees.blobs.close(),
+      this.swarm.destroy(),
+      this.store.close()
+    ]);
+  }
 }
 
 export async function _testReaderIntegration (tmpd, discoveryKeyString) {
   const reader = new Reader(discoveryKeyString);
   await reader.init({ storageName: tmpd });
-  let updated = await reader.bTrees.feed.update();
-  updated = await reader.cores.feed.update();
-  const l = await reader.cores.feed.length;
+  await reader.bTrees.feed.update({ wait: true });
 
   const stream = reader.bTrees.feed.createReadStream({}, { reverse: true });
   const out = [];
@@ -91,5 +104,6 @@ export async function _testReaderIntegration (tmpd, discoveryKeyString) {
   if (out.length === 0) {
     throw new Error('no stream parts found!!!!');
   }
+  await reader.close();
   return out;
 }

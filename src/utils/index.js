@@ -208,3 +208,17 @@ export function filterObj (filterFields, o) {
   const filters = new Set(filterFields);
   return objectMap(o, arr => arr.filter(([k, _v]) => !filters.has(k)));
 }
+
+export async function withContext ({ enter = async () => {}, exit = async () => {}, func = async () => {} }) {
+  const ctx = await enter();
+  try {
+    const result = await func(ctx);
+    await exit({ ctx, result });
+    return result;
+  } catch (error) {
+    console.log(error);
+    await exit({ ctx, error });
+    throw error;
+  }
+}
+export const noop = (x) => x;

@@ -5,10 +5,13 @@ import { stat } from 'node:fs/promises';
 
 import test from 'ava';
 
-import { getStore, getStoreAndCores, Writer } from './writer.js';
+import { getStore, getStoreAndCores, Writer, _testUpdateWriterIntegration } from './writer.js';
 import { retry } from './utils/async.js';
 import { withRssServer, download, mutateRss, jsonFromXml, xmlFromJson } from './tools/mirror.js';
-import { TEST_URLS } from './const.js';
+import { TEST_URLS, CHAPO } from './const.js';
+
+import { _testReaderIntegration } from './reader.js';
+import { withRssSubProcess } from './tools/forkedFeed.js';
 
 // does orig str equal dbl parsed?
 test('Test parse RSS feed and turn it back into the same XML', async t => {
@@ -53,6 +56,19 @@ test('test new Writer saves config and loading from it does not change it', asyn
   });
 });
 
+test('Smoke test read write',
+  async (t) => {
+    await withRssSubProcess(CHAPO, async (url) => {
+      await _testUpdateWriterIntegration(url, async (x) => {
+        await withTmpDir(async (tmpd) => {
+          await _testReaderIntegration(tmpd, x);
+          t.pass();
+        });
+      });
+    });
+  }
+);
+
 async function _testkeyblobs (path) {
   const key = 'foobar',
     buff = Buffer.from('Hello, world!');
@@ -74,18 +90,3 @@ async function _testFromStoreKeyBlobs (tmpd) {
   const gotten = await kb.get(key);
   assert(gotten.toString(), buff.toString());
 }
-
-// import { withTmpDir } from './utils/tests.js';
-// (async () => await withTmpDir((tmpd) => _testkeyblobs(tmpd)))();
-// (async () => await withTmpDir((tmpd) => _testFromStoreKeyBlobs(tmpd)))();
-// (async () => await withTmpDir(async (tmpd) => await _testUpdateWriterIntegration(tmpd)))();
-/*
-
-(async () => {
-  const name = 'foo.json';
-  const data = { stuff: 66, yo: 'dog' };
-  await writeJsonFile(name, data);
-  const result = await readJsonFile(name);
-  console.log(result);
-})();
-*/

@@ -72,7 +72,9 @@ export async function * monitorStream (stream, func) {
 
 export async function takeAll (stream) {
   const out = [];
+  console.log('get parts!');
   for await (const x of stream) {
+    console.log('got part', x);
     out.push(x);
   }
   return out;

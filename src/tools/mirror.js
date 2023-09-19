@@ -13,6 +13,7 @@ import { CHAPO, DOWNLOAD_DIR_NAME, MIRRORED_DIR, REDDIT, SKEPTOID, SRC_DIR, TEST
 import { createHash } from 'node:crypto';
 
 import { print } from '../dev.js';
+import { _testUpdateWriterIntegration } from '../writer.js';
 
 const RSS_PATH = 'rss.xml';
 const DEFAULT_LOCAL_ORIGIN = 'http://localhost:8080';
@@ -220,7 +221,8 @@ async function replaceInFile (path, before, after, { encoding = 'utf8', ...optio
   await writeFile(path, afterContent, encoding);
 }
 
-async function serveRssFeed (name, func) {
+// TODO sholud this close the server when func is done?
+export async function withTmpRssFeed (name, func) {
   // find the rss directory
   const mirrorDir = join(MIRRORED_DIR, name);
   // create tmp dir
@@ -233,7 +235,8 @@ async function serveRssFeed (name, func) {
     const urlStr = urlFromAddress(server.address());
 
     const url = new URL(urlStr);
-    url.hostname = 'localhost';
+    url.hostname = '0.0.0.0';
+    url.pathname = RSS_PATH;
 
     const rssXmlPath = join(tmpDir, RSS_PATH);
     const beforeOrigin = DEFAULT_LOCAL_ORIGIN;
@@ -241,26 +244,11 @@ async function serveRssFeed (name, func) {
     // search and replace localhost:8080 with localhost:NEW_PORT
     replaceInFile(rssXmlPath, beforeOrigin, url.origin);
 
+    print('HREF', url.href);
     // call the func
-    await func();
+    await func(url.href);
 
     // close the server
     await (new Promise(resolve => server.close(resolve)));
   });
 }
-
-/*
-(async () => {
-  await serveRssFeed(CHAPO, () => wait(3 * 1e2 * 1e3));
-})();
-
-(async () => {
-  const maxItems = 3;
-  // This is broken downloading does not give an actual rss feed
-  // await downloadMirrorRss(REDDIT, TEST_URLS);
-  // worked
-  await downloadMirrorRss(CHAPO, TEST_URLS, { maxItems });
-  await downloadMirrorRss(SKEPTOID, TEST_URLS, { maxItems });
-  await downloadMirrorRss(XKCD, TEST_URLS);
-})();
-*/

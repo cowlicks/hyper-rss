@@ -8,10 +8,12 @@ import { AsyncQueue } from './index.js';
 export function getUrl (url, queue = new AsyncQueue()) {
   const htt = url.startsWith('https') ? https : http;
   const req = htt.get(url, res => {
+    console.log('GOT RESPONSE', res);
     if (res.statusCode === 301 || res.statusCode === 302) {
       res.destroy();
       return getUrl(res.headers.location, queue);
     }
+    console.log(res.statusCode);
     res.on('data', chunk => {
       queue.push(chunk);
     });

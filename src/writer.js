@@ -3,11 +3,14 @@ import Parser from 'rss-parser';
 import Corestore from 'corestore';
 import Hyperbee from 'hyperbee';
 
-import { base64FromBuffer, readJsonFile, writeJsonFile } from './utils/index.js';
+import { base64FromBuffer, noop, readJsonFile, writeJsonFile } from './utils/index.js';
 import { log } from './log.js';
 import { itemsNotHyperized } from './items.js';
 import { getEnclosure } from './blobs.js';
 import { swarmInit } from './swarm.js';
+
+import { print } from './dev.js';
+import { withTmpDir } from './utils/tests.js';
 
 const WRITER_STORAGE = './writer-storage';
 const HRSS_STORE_PREFIX = 'hrss';
@@ -93,8 +96,11 @@ async function addItem (key, item, feedBatcher, _blobsBatcher) {
   }
   await feedBatcher.put(key, JSON.stringify(item));
 }
-
 async function addMissing (missing, { feed, blobKeys: _, blobs }) {
+  // print(missing);
+  const { key, rssItem } = await missing[0];
+  await feed.put(key, JSON.stringify(rssItem));
+  /*
   const feedBatcher = feed.batch();
   const blobsBatcher = blobs.batch();
 
@@ -103,6 +109,7 @@ async function addMissing (missing, { feed, blobKeys: _, blobs }) {
     await addItem(key, rssItem, feedBatcher, blobsBatcher);
   }
   await Promise.all([feedBatcher.flush(), blobsBatcher.flush()]);
+  */
 }
 
 const fromConfigPropertyName = 'fromConfig';
@@ -157,7 +164,6 @@ export class Writer {
       this.cores.feed.close(),
       this.cores.blobKeys.close(),
       this.cores.blobs.close(),
-      this.cores.keys.close(),
       this.bTrees.feed.close(),
       this.bTrees.blobKeys.close(),
       this.bTrees.blobs.close(),
@@ -201,11 +207,14 @@ export class Writer {
   }
 }
 
-export async function _testUpdateWriterIntegration (tmpd) {
-  const _url = 'https://xkcd.com/rss.xml';
-  const writer = await Writer.fromConfig();
-  await writer.init();
-  await writer.updateFeed();
-  console.log('WRITER LENGTH', writer.cores.feed.length);
-  return writer.discoveryKeyString();
+export async function _testUpdateWriterIntegration (url, func = noop) {
+  await withTmpDir(async (storageDir) => {
+    // const writer = await Writer.fromConfig();
+    const writer = new Writer(url, { storageName: storageDir });
+    await writer.init();
+    await writer.updateFeed();
+    console.log('WRITER LENGTH', writer.cores.feed.length);
+    await func(writer.discoveryKeyString());
+    await writer.close();
+  });
 }
