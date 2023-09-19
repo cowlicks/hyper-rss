@@ -1,5 +1,10 @@
 # Tasks
 
+* Running http server and making requests to it in the same process hangs. I
+  need to run the server in a suprocess. See "forkedFeed"
+* For creating local RSS feeds I need a way to write out the rss-parser json
+  output back to rss feeds. This can be a hack bc it is just for testing. for actual output in hrss it will be JSON like
+
 * I want to be able to mirror an existing RSS feed locally for testing. The
   mirroring stuff can go into src/tools/.
 
