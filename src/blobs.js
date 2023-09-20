@@ -28,6 +28,15 @@ export class KeyedBlobs {
     });
   }
 
+  async close () {
+    await Promise.all([
+      this.cores.blobKeys.close(),
+      this.cores.blobs.close(),
+      this?.keys?.close(),
+      this?.blosbs?.close()
+    ]);
+  }
+
   async init () {
     await Promise.all([this.cores.blobKeys.ready(), this.cores.blobs.ready()]);
     Object.assign(
