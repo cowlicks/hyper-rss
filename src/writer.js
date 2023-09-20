@@ -1,4 +1,3 @@
-import { stat } from 'node:fs/promises';
 import Parser from 'rss-parser';
 import Corestore from 'corestore';
 import Hyperbee from 'hyperbee';
@@ -9,7 +8,6 @@ import { itemsNotHyperized } from './items.js';
 import { getEnclosure } from './blobs.js';
 import { swarmInit } from './swarm.js';
 
-import { print } from './dev.js';
 import { withTmpDir } from './utils/tests.js';
 
 const WRITER_STORAGE = './writer-storage';
@@ -97,7 +95,6 @@ async function addItem (key, item, feedBatcher, _blobsBatcher) {
   await feedBatcher.put(key, JSON.stringify(item));
 }
 async function addMissing (missing, { feed, blobKeys: _, blobs }) {
-  // print(missing);
   const { key, rssItem } = await missing[0];
   await feed.put(key, JSON.stringify(rssItem));
   /*

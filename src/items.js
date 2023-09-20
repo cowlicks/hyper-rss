@@ -1,5 +1,3 @@
-import Hyperbee from 'hyperbee';
-
 const defaultRssItemHasher = ({ guid }) => guid;
 
 export async function itemsNotHyperized (rssFeed, hyperbeeItemsDb, { hasher = defaultRssItemHasher } = {}) {

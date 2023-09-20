@@ -1,5 +1,5 @@
 import { mkdir, cp, readFile } from 'node:fs/promises';
-import path, { join } from 'node:path';
+import { join } from 'node:path';
 
 import * as cheerio from 'cheerio';
 import express from 'express';
@@ -7,9 +7,9 @@ import Parser from 'rss-parser';
 import { parseString, Builder } from 'xml2js';
 
 import { getUrl, writeFile, renameFields, filterObj, orderObj } from '../utils/index.js';
-import { takeAll, wait } from '../utils/async.js';
+import { takeAll } from '../utils/async.js';
 import { withTmpDir } from '../utils/tests.js';
-import { CHAPO, DOWNLOAD_DIR_NAME, MIRRORED_DIR, REDDIT, SKEPTOID, SRC_DIR, TEST_URLS, XKCD } from '../const.js';
+import { DOWNLOAD_DIR_NAME, MIRRORED_DIR } from '../const.js';
 import { createHash } from 'node:crypto';
 
 import { print } from '../dev.js';
@@ -209,12 +209,8 @@ export async function saveRssToDiskFromUrl (url, { pathPrefix = './', maxItems =
   await writeFile(join(pathPrefix, RSS_PATH), newXml, { createDir: true });
   print('xml file written');
 }
-async function downloadMirrorRss (name, testUrls, options = {}) {
-  const mirrorPath = join(MIRRORED_DIR, name);
-  await saveRssToDiskFromUrl(testUrls[name], { pathPrefix: mirrorPath, ...options });
-}
 
-async function replaceInFile (path, before, after, { encoding = 'utf8', ...options } = {}) {
+async function replaceInFile (path, before, after, { encoding = 'utf8' } = {}) {
   const beforeContent = await readFile(path, { encoding });
   const regex = new RegExp(before, 'g');
   const afterContent = beforeContent.replace(regex, after);

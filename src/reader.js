@@ -3,9 +3,7 @@ import goodbye from 'graceful-goodbye';
 import Hyperbee from 'hyperbee';
 import Hyperswarm from 'hyperswarm';
 import { log } from './log.js';
-import { wait } from './utils/async.js';
 import { bufferFromBase64 } from './utils/index.js';
-import { print } from './dev.js';
 
 const READER_STORAGE = './reader-storage';
 

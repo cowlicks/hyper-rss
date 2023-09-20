@@ -1,7 +1,6 @@
 import { fork } from 'node:child_process';
-import { SERVER_URL, STOP_PROCESS, XKCD } from '../const.js';
+import { SERVER_URL, STOP_PROCESS } from '../const.js';
 import { Deferred } from '../utils/index.js';
-import Parser from 'rss-parser';
 
 // TODO how to handle whenever there is an error in the subprocess? try
 // listening IN the cp to 'uncaughtException' and 'close' ON the cp

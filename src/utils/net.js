@@ -1,13 +1,12 @@
 import https from 'https';
 import http from 'http';
 
-// import { AsyncQueue } from '.';
 import { AsyncQueue } from './index.js';
 
 /* Gets bytes from a url as an async iterable. Follows redirects */
 export function getUrl (url, queue = new AsyncQueue()) {
   const htt = url.startsWith('https') ? https : http;
-  const req = htt.get(url, res => {
+  htt.get(url, res => {
     console.log('GOT RESPONSE', res);
     if (res.statusCode === 301 || res.statusCode === 302) {
       res.destroy();
