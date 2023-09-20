@@ -8,7 +8,7 @@ import test from 'ava';
 import { getStore, getStoreAndCores, Writer, _testUpdateWriterIntegration } from './writer.js';
 import { retry } from './utils/async.js';
 import { withRssServer, download, mutateRss, jsonFromXml, xmlFromJson } from './tools/mirror.js';
-import { TEST_URLS, CHAPO } from './const.js';
+import { TEST_URLS, CHAPO, XKCD } from './const.js';
 
 import { _testReaderIntegration } from './reader.js';
 import { withRssSubProcess } from './tools/forkedFeed.js';
@@ -58,10 +58,11 @@ test('test new Writer saves config and loading from it does not change it', asyn
 
 test('Smoke test read write',
   async (t) => {
-    await withRssSubProcess(CHAPO, async (url) => {
+    await withRssSubProcess(XKCD, async (url) => {
       await _testUpdateWriterIntegration(url, async (x) => {
         await withTmpDir(async (tmpd) => {
-          await _testReaderIntegration(tmpd, x);
+          const readItems = await _testReaderIntegration(tmpd, x);
+          t.is(readItems.length, 4);
           t.pass();
         });
       });

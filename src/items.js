@@ -9,15 +9,7 @@ export async function itemsNotHyperized (rssFeed, hyperbeeItemsDb, { hasher = de
     const key = hasher(rssItem);
     const hyperItemRes = await batcher.get(key);
     if (hyperItemRes === null) {
-      console.log(`No key: ${key}`);
-      await batcher.put(key, JSON.stringify(rssItem));
       out.push({ key, rssItem });
-    } else {
-      console.log(`
-        HAS key ${key}
-        hitem ${hyperItemRes}
-        ritem ${rssItem.title}
-      `);
     }
   }
   await batcher.flush();

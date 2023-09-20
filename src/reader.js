@@ -47,9 +47,7 @@ class Reader {
     const feedCore = store.get({ key: bufferFromBase64(keys.feed) });
     const blobsCore = store.get({ key: bufferFromBase64(keys.blobs) });
 
-    // TODO is this needed???
     await Promise.all([feedCore.ready(), blobsCore.ready()]);
-    await Promise.all([feedCore.update(), blobsCore.update()]);
 
     const feedBTree = new Hyperbee(feedCore);
     const blobsBTree = new Hyperbee(blobsCore);

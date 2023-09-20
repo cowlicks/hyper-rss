@@ -94,10 +94,8 @@ async function addItem (key, item, feedBatcher, _blobsBatcher) {
   }
   await feedBatcher.put(key, JSON.stringify(item));
 }
+
 async function addMissing (missing, { feed, blobKeys: _, blobs }) {
-  const { key, rssItem } = await missing[0];
-  await feed.put(key, JSON.stringify(rssItem));
-  /*
   const feedBatcher = feed.batch();
   const blobsBatcher = blobs.batch();
 
@@ -106,7 +104,6 @@ async function addMissing (missing, { feed, blobKeys: _, blobs }) {
     await addItem(key, rssItem, feedBatcher, blobsBatcher);
   }
   await Promise.all([feedBatcher.flush(), blobsBatcher.flush()]);
-  */
 }
 
 const fromConfigPropertyName = 'fromConfig';
