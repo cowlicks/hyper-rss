@@ -14,7 +14,7 @@ import { createHash } from 'node:crypto';
 
 import { print } from '../dev.js';
 import { _testUpdateWriterIntegration } from '../writer.js';
-import { itemEnclosureHandler } from '../items.js';
+import { itemEnclosureHandler, itemImgHandler } from '../items.js';
 
 const RSS_PATH = 'rss.xml';
 const DEFAULT_LOCAL_ORIGIN = 'http://localhost:8080';
@@ -157,20 +157,8 @@ export async function saveUrlAsHash (url, { pathPrefix = './', origin = DEFAULT_
 // Find an img tag in the RSS items' content tag and save it to a local file,
 // rewrite item's url to point to the new file
 export async function rewriteImage (item, options) {
-  const c = cheerio.load(item.content, null, false);
-
-  const imgElement = c('img');
-  if (imgElement.length === 0) {
-    return item;
-  }
-
-  const ogUrl = imgElement.attr('src');
-  const newUrl = await saveUrlAsHash(ogUrl, { ...options });
-  imgElement.attr('src', newUrl);
-
-  item.content = c.html();
-
-  return item;
+  const out = itemImgHandler(item, (url) => saveUrlAsHash(url, { ...options }));
+  return out;
 }
 
 // Save the data from a RSS enclosure tag to a local file and rewrite the URL

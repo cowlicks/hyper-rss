@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio';
+import { noop } from './utils/index.js';
 
 const defaultRssItemHasher = ({ guid }) => guid;
 
@@ -37,22 +38,7 @@ export async function itemEnclosureHandler (item, urlHandler) {
   return item;
 }
 
-// TODO
-async function maybeHandleEnclosure (item, { keyedBlobs } = {}) {
-  // check if has enclosure
-  if (!item.enclosure) {
-    return item;
-  }
-  // download item.enclosure.url to buffer
-  const newUrl = await _saveUrlToKeyedBlobs(item.enclosure.url, { keyedBlobs });
-  // hash it and create new key/newUrl. See './tools/mirror.js'.saveUrlAsHash for url handling
-  // insert into keyed blob store
-  item.enclosure.url = newUrl;
-  return item;
-}
-
-// TODO
-async function maybeHandleImgContent (item, { keyedBlobs } = {}) {
+export async function itemImgHandler (item, urlHandler) {
   const c = cheerio.load(item.content, null, false);
 
   const imgElement = c('img');
@@ -61,12 +47,26 @@ async function maybeHandleImgContent (item, { keyedBlobs } = {}) {
   }
 
   const ogUrl = imgElement.attr('src');
-  const newUrl = await _saveUrlToKeyedBlobs(ogUrl, { keyedBlobs });
+  const newUrl = await urlHandler(ogUrl, item);
   imgElement.attr('src', newUrl);
 
   item.content = c.html();
 
   return item;
+}
+
+// TODO
+async function maybeHandleEnclosure (item, { keyedBlobs } = {}) {
+  const out = itemEnclosureHandler(item, (url) => {
+    return url;
+  });
+  return out;
+}
+
+// TODO
+async function maybeHandleImgContent (item, { keyedBlobs } = {}) {
+  const out = itemImgHandler(item, noop);
+  return out;
 }
 
 // TODO use this when enclosure's and images are handled
