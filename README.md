@@ -1,5 +1,8 @@
 # Tasks
 
+* have a RSS representation of hrss feed. This could be useful for compatability with regular rss readers.
+* Test blob and keyed blob stuff
+
 * Running http server and making requests to it in the same process hangs. I
   need to run the server in a suprocess. See "forkedFeed"
 * For creating local RSS feeds I need a way to write out the rss-parser json
