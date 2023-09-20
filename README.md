@@ -25,7 +25,12 @@
 
 To satisfy my own interests I'd like to do a few things in this project.
 
-* Explore interoperability between node and rust. Write somethings in rust and expose them with rust's FFI. Then call them from node. I'd also like to explore using datrs code via FFI.
+* Explore interoperability between node and rust.
+    * rust -> FFI -> nodejs
+    * rust -> wasm -> nodejs
+    * try building datrs code to be used from node
+        * contribute to datrs to help the project better integrate with the nodejs libs
+
 
 ### Configuring
 
@@ -43,3 +48,12 @@ This file has the URL and storage name. New can just be provide a URL.
 Then it should create this config file.
 
 Reader *can* piggy back off this config file to ease local testing, for this reason we add the discovery key to it.
+
+### Different builds
+
+We should be able to split this into two builds, Writer-reader and reader. Where reader is smaller because it does not need the stuff to pull parse wriet the hrss
+
+## Entry Points
+
+* rss downloading
+* serve local rss (from data downloaded by via rss downloading)
