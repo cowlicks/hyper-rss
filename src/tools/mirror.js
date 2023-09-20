@@ -153,6 +153,8 @@ export async function saveUrlAsHash (url, { pathPrefix = './', origin = DEFAULT_
   return newUrl.href;
 }
 
+// Find an img tag in the RSS items' content tag and save it to a local file,
+// rewrite item's url to point to the new file
 export async function rewriteImage (item, options) {
   const c = cheerio.load(item.content, null, false);
 
@@ -170,6 +172,8 @@ export async function rewriteImage (item, options) {
   return item;
 }
 
+// Save the data from a RSS enclosure tag to a local file and rewrite the URL
+// in the feed to point to the local file
 export async function rewriteEnclosure (item, options) {
   if (!item.enclosure) {
     return item;

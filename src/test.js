@@ -8,7 +8,7 @@ import test from 'ava';
 import { getStore, getStoreAndCores, Writer, _testUpdateWriterIntegration } from './writer.js';
 import { retry } from './utils/async.js';
 import { withRssServer, download, mutateRss, jsonFromXml, xmlFromJson } from './tools/mirror.js';
-import { TEST_URLS, CHAPO, XKCD } from './const.js';
+import { TEST_URLS, XKCD } from './const.js';
 
 import { _testReaderIntegration } from './reader.js';
 import { withRssSubProcess } from './tools/forkedFeed.js';
@@ -35,7 +35,7 @@ test('test new Writer saves config and loading from it does not change it', asyn
     // conf does not exist
     t.throwsAsync(stat(configFileName));
 
-    const w = await Writer.forNewUrl(TEST_URLS.xkcd, { configFileName, storageName: dir });
+    const w = await Writer.forNewUrl(TEST_URLS[XKCD], { configFileName, storageName: dir });
     await w.init();
     t.teardown(async () => await w.close());
 
