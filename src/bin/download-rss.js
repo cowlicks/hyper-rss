@@ -1,4 +1,4 @@
-import { DOWNLOAD_DIR_NAME, MIRRORED_DIR, TEST_URLS } from '../const.js';
+import { MIRRORED_DIR, TEST_URLS } from '../const.js';
 import { join } from 'node:path';
 import { saveRssToDiskFromUrl } from '../tools/mirror.js';
 
