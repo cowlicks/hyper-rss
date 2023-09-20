@@ -70,24 +70,33 @@ test('Smoke test read write',
   }
 );
 
-async function _testkeyblobs (path) {
-  const key = 'foobar',
-    buff = Buffer.from('Hello, world!');
+const TEST_KEY = 'foobar',
+  TEST_BUFFER = Buffer.from('Mello wort?');
 
-  const { cores: { blobKeys, blobs } } = getStoreAndCores({ storageName: path });
-  const kb = new KeyedBlobs(blobKeys, blobs);
-  await kb.init();
-  await kb.put(key, buff);
-  const gotten = await kb.get(key);
-  assert(gotten.toString(), buff);
-}
-async function _testFromStoreKeyBlobs (tmpd) {
-  const key = 'foobar',
-    buff = Buffer.from('Hello, world!');
-  const { store } = getStore({ storageName: tmpd });
-  const kb = KeyedBlobs.fromStore(store);
-  await kb.init();
-  await kb.put(key, buff);
-  const gotten = await kb.get(key);
-  assert(gotten.toString(), buff.toString());
-}
+const withKeyeBlobsWithTestData = async (theTest) => {
+  await withTmpDir(async (storageName) => {
+    const { cores: { blobKeys, blobs }, ...rest } = getStoreAndCores({ storageName });
+    const kb = new KeyedBlobs(blobKeys, blobs);
+    await kb.init();
+    await kb.put(TEST_KEY, TEST_BUFFER);
+    await theTest(kb, { storageName, ...rest });
+  });
+};
+test('KeyedBlobs.get', async (t) => {
+  await withKeyeBlobsWithTestData(async (kb) => {
+    const gotten = await kb.get(TEST_KEY);
+    t.deepEqual(gotten, TEST_BUFFER);
+  });
+});
+
+test('KeyedBlobs.fromStore', async (t) => {
+  await withKeyeBlobsWithTestData(async (kb, { storageName, store }) => {
+    await kb.close();
+    await store.close();
+    const { store: store2 } = getStore({ storageName });
+    const kb2 = KeyedBlobs.fromStore(store2);
+    await kb2.init();
+    const gotten = await kb2.get(TEST_KEY);
+    t.deepEqual(gotten, TEST_BUFFER);
+  });
+});
