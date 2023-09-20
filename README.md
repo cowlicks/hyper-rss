@@ -1,5 +1,6 @@
 # Tasks
 
+* Use logs instead of console.log
 * have a RSS representation of hrss feed. This could be useful for compatability with regular rss readers.
 * Test blob and keyed blob stuff
 

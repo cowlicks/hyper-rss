@@ -14,6 +14,7 @@ import { createHash } from 'node:crypto';
 
 import { print } from '../dev.js';
 import { _testUpdateWriterIntegration } from '../writer.js';
+import { itemEnclosureHandler } from '../items.js';
 
 const RSS_PATH = 'rss.xml';
 const DEFAULT_LOCAL_ORIGIN = 'http://localhost:8080';
@@ -175,14 +176,8 @@ export async function rewriteImage (item, options) {
 // Save the data from a RSS enclosure tag to a local file and rewrite the URL
 // in the feed to point to the local file
 export async function rewriteEnclosure (item, options) {
-  if (!item.enclosure) {
-    return item;
-  }
-
-  const newUrl = await saveUrlAsHash(item.enclosure.url, { ...options });
-  item.enclosure.url = newUrl;
-
-  return item;
+  const out = await itemEnclosureHandler(item, (url) => saveUrlAsHash(url, { ...options }));
+  return out;
 }
 
 export async function rewriteFeedItemAndSaveToDisk (item, options) {
@@ -191,7 +186,8 @@ export async function rewriteFeedItemAndSaveToDisk (item, options) {
   return item;
 }
 
-export async function saveRssToDiskFromUrl (url, { pathPrefix = './', maxItems = Number.MAX_VALUE } = {}) {
+// test this to verify enclosure changes
+export async function saveRssToDiskFromUrl (url, { pathPrefix = MIRRORED_DIR, maxItems = Number.MAX_VALUE } = {}) {
   const str = await download(url);
   const newXml = await mutateRss(str, async (feed) => {
     const items = [];
@@ -201,17 +197,16 @@ export async function saveRssToDiskFromUrl (url, { pathPrefix = './', maxItems =
         print(`Reached max items [${count}]`);
         break;
       }
-      print(item);
       items.push(await rewriteFeedItemAndSaveToDisk(item, { pathPrefix }));
       count += 1;
     }
     feed.items = items;
     return filterObj(['link'], feed);
   });
-  console.log('writing new xml');
-  print(newXml);
-  await writeFile(join(pathPrefix, RSS_PATH), newXml, { createDir: true });
-  print('xml file written');
+  const feedPath = join(pathPrefix, RSS_PATH);
+  console.log(`writing new xml to [${feedPath}]`);
+  await writeFile(feedPath, newXml, { createDir: true });
+  console.log(`xml file written to [${feedPath}]`);
 }
 
 async function replaceInFile (path, before, after, { encoding = 'utf8' } = {}) {
@@ -244,7 +239,9 @@ export async function withTmpRssFeed (name, func) {
     // search and replace localhost:8080 with localhost:NEW_PORT
     replaceInFile(rssXmlPath, beforeOrigin, url.origin);
 
-    print('HREF', url.href);
+    print(`Serving RSS feed at:
+${url.href}
+`);
     // call the func
     await func(url.href);
 
