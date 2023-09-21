@@ -1,16 +1,16 @@
 import { KeyedBlobs } from './blobs.js';
+import { Reader } from './reader.js';
 import { withTmpDir } from './utils/tests.js';
 import { join } from 'node:path';
 import { stat } from 'node:fs/promises';
 
 import test from 'ava';
 
-import { getStore, getStoreAndCores, Writer, testUpdateWriterIntegration } from './writer.js';
-import { retry } from './utils/async.js';
+import { getStore, getStoreAndCores, Writer } from './writer.js';
+import { retry, takeAll } from './utils/async.js';
 import { withRssServer, download, mutateRss, jsonFromXml, xmlFromJson } from './tools/mirror.js';
 import { CHAPO, TEST_URLS, XKCD } from './const.js';
 
-import { _testReaderIntegration } from './reader.js';
 import { withRssSubProcess } from './tools/forkedFeed.js';
 
 // does orig str equal dbl parsed?
@@ -56,12 +56,33 @@ test('test new Writer saves config and loading from it does not change it', asyn
   });
 });
 
+async function withWriter (url, testFunc) {
+  await withTmpDir(async (storageDir) => {
+    // const writer = await Writer.fromConfig();
+    const writer = new Writer(url, { storageName: storageDir });
+    await writer.init();
+    await writer.updateFeed();
+    await testFunc(writer);
+    await writer.close();
+  });
+}
+
+async function withReader (discoveryKey, testFunc) {
+  await withTmpDir(async (storageName) => {
+    const reader = new Reader(discoveryKey);
+    await reader.init({ storageName });
+    await reader.bTrees.feed.update({ wait: true });
+    await testFunc(reader);
+    await reader.close();
+  });
+}
+
 test('Smoke test read write XKCD',
   async (t) => {
     await withRssSubProcess(XKCD, async (url) => {
-      await testUpdateWriterIntegration(url, async (x) => {
-        await withTmpDir(async (tmpd) => {
-          const readItems = await _testReaderIntegration(tmpd, x);
+      await withWriter(url, async (writer) => {
+        await withReader(writer.discoveryKeyString(), async (reader) => {
+          const readItems = await takeAll(reader.bTrees.feed.createReadStream());
           // TODO check blob size
           t.is(readItems.length, 4);
           t.pass();
@@ -74,9 +95,11 @@ test('Smoke test read write XKCD',
 test('Smoke test read write CHAPO',
   async (t) => {
     await withRssSubProcess(CHAPO, async (url) => {
-      await testUpdateWriterIntegration(url, async (x) => {
-        await withTmpDir(async (tmpd) => {
-          const readItems = await _testReaderIntegration(tmpd, x);
+      await withWriter(url, async (writer) => {
+        await withReader(writer.discoveryKeyString(), async (reader) => {
+          const readItems = await takeAll(reader.bTrees.feed.createReadStream());
+          const keys = await writer.keyedBlobs.getKeys();
+          t.is(keys.length, 5);
           t.is(readItems.length, 5);
           t.pass();
         });

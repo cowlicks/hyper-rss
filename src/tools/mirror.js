@@ -8,11 +8,9 @@ import { parseString, Builder } from 'xml2js';
 import { writeFile, renameFields, filterObj, orderObj, downloadToBuffer } from '../utils/index.js';
 import { withTmpDir } from '../utils/tests.js';
 import { DOWNLOAD_DIR_NAME, MIRRORED_DIR } from '../const.js';
-import { createHash } from 'node:crypto';
 
 import { print } from '../dev.js';
-import { testUpdateWriterIntegration } from '../writer.js';
-import { downloadAndCreateFilename, downloadAndHash, itemEnclosureHandler, itemImgHandler } from '../items.js';
+import { downloadAndCreateFilename, itemEnclosureHandler, itemImgHandler } from '../items.js';
 
 const RSS_PATH = 'rss.xml';
 const DEFAULT_LOCAL_ORIGIN = 'http://localhost:8080';

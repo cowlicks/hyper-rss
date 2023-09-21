@@ -2,6 +2,7 @@ import Hyperbee from 'hyperbee';
 import Hyperblobs from 'hyperblobs';
 import { storeNames } from './writer.js';
 import { getUrl } from './utils/index.js';
+import { takeAll } from './utils/async.js';
 // TODO rewrite url in the enclosure to anonymize it
 export async function getEnclosure (enclosure) {
   const chunks = [];
@@ -60,6 +61,14 @@ export class KeyedBlobs {
       return null;
     }
     return this.put(key, blob, { ...options });
+  }
+
+  keyStream () {
+    return this.keys.createReadStream();
+  }
+
+  async getKeys () {
+    return takeAll(this.keyStream());
   }
 
   async get (key, { blobsOpts, beeOpts } = {}) {

@@ -84,10 +84,7 @@ async function initWriter (url, { ...opts } = {}) {
       keys, feed, blobKeys, blobs
     },
     bTrees: {
-      feed: new Hyperbee(feed),
-      blobKeys: new Hyperbee(blobKeys),
-      // TODO this should be hyperblobs? or actually just removed
-      blobs: new Hyperbee(blobs)
+      feed: new Hyperbee(feed)
     },
     keyedBlobs,
     ...storeAndCoreRest
@@ -95,7 +92,6 @@ async function initWriter (url, { ...opts } = {}) {
 }
 
 async function addItem (key, item, { feedBatcher, keyedBlobs }) {
-  // const item2 = await handleItem(item);
   const item2 = await handleItem(item, { keyedBlobs });
   await feedBatcher.put(key, JSON.stringify(item2));
 }
@@ -165,8 +161,6 @@ export class Writer {
       this.cores.blobKeys.close(),
       this.cores.blobs.close(),
       this.bTrees.feed.close(),
-      this.bTrees.blobKeys.close(),
-      this.bTrees.blobs.close(),
       this.keyedBlobs.close()
     ]);
   }
@@ -204,16 +198,4 @@ export class Writer {
       discoveryKeyString: this.discoveryKeyString
     });
   }
-}
-
-export async function testUpdateWriterIntegration (url, func = noop) {
-  await withTmpDir(async (storageDir) => {
-    // const writer = await Writer.fromConfig();
-    const writer = new Writer(url, { storageName: storageDir });
-    await writer.init();
-    await writer.updateFeed();
-    console.log('WRITER LENGTH', writer.cores.feed.length);
-    await func(writer.discoveryKeyString());
-    await writer.close();
-  });
 }

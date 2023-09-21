@@ -8,7 +8,7 @@ import { bufferFromBase64 } from './utils/index.js';
 
 const READER_STORAGE = './reader-storage';
 
-class Reader {
+export class Reader {
   constructor (discoveryKeyString) {
     log.info(`Creating Reader for discovery key = [${discoveryKeyString}]`);
     Object.assign(
@@ -96,21 +96,4 @@ class Reader {
       this.keyedBlobs.close()
     ]);
   }
-}
-
-export async function _testReaderIntegration (tmpd, discoveryKeyString) {
-  const reader = new Reader(discoveryKeyString);
-  await reader.init({ storageName: tmpd });
-  await reader.bTrees.feed.update({ wait: true });
-
-  const stream = reader.bTrees.feed.createReadStream({}, { reverse: true });
-  const out = [];
-  for await (const s of stream) {
-    out.push(JSON.parse(s.value.toString()));
-  }
-  if (out.length === 0) {
-    throw new Error('no stream parts found!!!!');
-  }
-  await reader.close();
-  return out;
 }
