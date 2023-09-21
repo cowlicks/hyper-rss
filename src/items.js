@@ -27,12 +27,23 @@ export async function downloadAndHash (url, { hashAlgorithm = 'sha256', digestEn
   return { buffer, hash };
 }
 
-// TODO create saveUrlToKeyedBlobs like saveUrlAsHash
-async function _saveUrlToKeyedBlobs (url, { keyedBlobs: _ }) {
-  // TODO
-  return url;
+export async function downloadAndCreateFilename (url, { ...options }) {
+  const { buffer, hash } = await downloadAndHash(url, { ...options });
+  const parts = url.split('.');
+  const extension = parts[parts.length - 1];
+  const fileName = hash + (extension ? '.' + extension : '');
+  return { buffer, hash, fileName };
 }
 
+// TODO create saveUrlToKeyedBlobs like saveUrlAsHash
+async function saveUrlToKeyedBlobs (url, { keyedBlobs, ...options }) {
+  const { buffer, fileName } = await downloadAndCreateFilename(url, { ...options });
+  keyedBlobs.maybePut(fileName, buffer);
+  // TODO
+  return fileName;
+}
+
+// Url handler sholud download and save the URL and return a new URL pointing to it
 export async function itemEnclosureHandler (item, urlHandler) {
   if (!item.enclosure) {
     return item;
@@ -62,9 +73,10 @@ export async function itemImgHandler (item, urlHandler) {
 }
 
 // TODO
-async function maybeHandleEnclosure (item, { keyedBlobs } = {}) {
-  const out = itemEnclosureHandler(item, (url) => {
-    return url;
+async function maybeHandleEnclosure (item, { keyedBlobs, ...options } = {}) {
+  const out = itemEnclosureHandler(item, async (url) => {
+    const fileName = await saveUrlToKeyedBlobs(url, { keyedBlobs, ...options });
+    return fileName;
   });
   return out;
 }
@@ -76,8 +88,9 @@ async function maybeHandleImgContent (item, { keyedBlobs } = {}) {
 }
 
 // TODO use this when enclosure's and images are handled
-export async function handleItem (item) {
-  const item2 = maybeHandleEnclosure(item);
-  const item3 = maybeHandleImgContent(item2);
-  return item3;
+export async function handleItem (item, { keyedBlobs, ...options }) {
+  const item2 = maybeHandleEnclosure(item, { keyedBlobs, ...options });
+  return item2;
+  // const item3 = maybeHandleImgContent(item2);
+  // return item3;
 }

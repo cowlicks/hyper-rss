@@ -11,8 +11,8 @@ import { DOWNLOAD_DIR_NAME, MIRRORED_DIR } from '../const.js';
 import { createHash } from 'node:crypto';
 
 import { print } from '../dev.js';
-import { _testUpdateWriterIntegration } from '../writer.js';
-import { downloadAndHash, itemEnclosureHandler, itemImgHandler } from '../items.js';
+import { testUpdateWriterIntegration } from '../writer.js';
+import { downloadAndCreateFilename, downloadAndHash, itemEnclosureHandler, itemImgHandler } from '../items.js';
 
 const RSS_PATH = 'rss.xml';
 const DEFAULT_LOCAL_ORIGIN = 'http://localhost:8080';
@@ -129,16 +129,11 @@ export async function mutateRss (rssXmlStr, func) {
   return xmlFromJson(rssStyleJson);
 }
 
-function createLocalFilePathAndLocalUrl (url, hash, {
+function createLocalFilePathAndLocalUrl (url, fileName, {
   fileDirectory = DEFAULT_FILE_DIRECTORY,
   pathPrefix = DEFAULT_PATH_PREFIX,
   origin = DEFAULT_LOCAL_ORIGIN
 }) {
-  const parts = url.split('.');
-  const extension = parts[parts.length - 1];
-
-  const fileName = hash + (extension ? '.' + extension : '');
-
   const relativePath = join(fileDirectory, fileName);
   const filePath = join(pathPrefix, relativePath);
 
@@ -150,9 +145,9 @@ function createLocalFilePathAndLocalUrl (url, hash, {
 
 export async function downloadUrlAndCreateLocalUrl (url, { ...options } = {}) {
   console.log(`Downloading URL: ${url}`);
-  const { buffer, hash } = downloadAndHash(url);
+  const { buffer, fileName } = downloadAndCreateFilename(url);
 
-  const { localUrl, filePath } = createLocalFilePathAndLocalUrl(url, hash, { ...options });
+  const { localUrl, filePath } = createLocalFilePathAndLocalUrl(url, fileName, { ...options });
 
   console.log(`Saving URL [${url}] to [${filePath}]`);
   await writeFile(filePath, buffer, { createDir: true });

@@ -55,6 +55,13 @@ export class KeyedBlobs {
     return id;
   }
 
+  async maybePut (key, blob, { ...options } = {}) {
+    if (await this.keys.get(key)) {
+      return null;
+    }
+    return this.put(key, blob, { ...options });
+  }
+
   async get (key, { blobsOpts, beeOpts } = {}) {
     const { seq: _, value: rawValue } = await this.keys.get(key, beeOpts);
     const id = JSON.parse(rawValue.toString());

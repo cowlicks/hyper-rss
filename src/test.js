@@ -5,7 +5,7 @@ import { stat } from 'node:fs/promises';
 
 import test from 'ava';
 
-import { getStore, getStoreAndCores, Writer, _testUpdateWriterIntegration } from './writer.js';
+import { getStore, getStoreAndCores, Writer, testUpdateWriterIntegration } from './writer.js';
 import { retry } from './utils/async.js';
 import { withRssServer, download, mutateRss, jsonFromXml, xmlFromJson } from './tools/mirror.js';
 import { CHAPO, TEST_URLS, XKCD } from './const.js';
@@ -59,7 +59,7 @@ test('test new Writer saves config and loading from it does not change it', asyn
 test('Smoke test read write XKCD',
   async (t) => {
     await withRssSubProcess(XKCD, async (url) => {
-      await _testUpdateWriterIntegration(url, async (x) => {
+      await testUpdateWriterIntegration(url, async (x) => {
         await withTmpDir(async (tmpd) => {
           const readItems = await _testReaderIntegration(tmpd, x);
           // TODO check blob size
@@ -74,7 +74,7 @@ test('Smoke test read write XKCD',
 test('Smoke test read write CHAPO',
   async (t) => {
     await withRssSubProcess(CHAPO, async (url) => {
-      await _testUpdateWriterIntegration(url, async (x) => {
+      await testUpdateWriterIntegration(url, async (x) => {
         await withTmpDir(async (tmpd) => {
           const readItems = await _testReaderIntegration(tmpd, x);
           t.is(readItems.length, 5);

@@ -1,10 +1,11 @@
+// Propagate keyed blobs cores through
 import Parser from 'rss-parser';
 import Corestore from 'corestore';
 import Hyperbee from 'hyperbee';
 
 import { base64FromBuffer, noop, readJsonFile, writeJsonFile } from './utils/index.js';
 import { log } from './log.js';
-import { itemsNotHyperized } from './items.js';
+import { handleItem, itemsNotHyperized } from './items.js';
 import { getEnclosure, KeyedBlobs } from './blobs.js';
 import { swarmInit } from './swarm.js';
 
@@ -85,6 +86,7 @@ async function initWriter (url, { ...opts } = {}) {
     bTrees: {
       feed: new Hyperbee(feed),
       blobKeys: new Hyperbee(blobKeys),
+      // TODO this should be hyperblobs? or actually just removed
       blobs: new Hyperbee(blobs)
     },
     keyedBlobs,
@@ -92,22 +94,20 @@ async function initWriter (url, { ...opts } = {}) {
   };
 }
 
-async function addItem (key, item, feedBatcher, _blobsBatcher) {
-  if (item.enclosure) {
-    const _data = await getEnclosure(item.enclosure);
-  }
-  await feedBatcher.put(key, JSON.stringify(item));
+async function addItem (key, item, { feedBatcher, keyedBlobs }) {
+  // const item2 = await handleItem(item);
+  const item2 = await handleItem(item, { keyedBlobs });
+  await feedBatcher.put(key, JSON.stringify(item2));
 }
 
-async function addMissing (missing, { feed, blobKeys: _, blobs }) {
+async function addMissing (missing, { feed, keyedBlobs }) {
   const feedBatcher = feed.batch();
-  const blobsBatcher = blobs.batch();
 
   log.info(`# missing = [${missing.length}]`);
   for (const { key, rssItem } of missing) {
-    await addItem(key, rssItem, feedBatcher, blobsBatcher);
+    await addItem(key, rssItem, { feedBatcher, keyedBlobs });
   }
-  await Promise.all([feedBatcher.flush(), blobsBatcher.flush()]);
+  await Promise.all([feedBatcher.flush()]);
 }
 
 const fromConfigPropertyName = 'fromConfig';
@@ -176,7 +176,7 @@ export class Writer {
   }
 
   addNewItems (newItems) {
-    return addMissing(newItems, this.bTrees);
+    return addMissing(newItems, { feed: this.bTrees.feed, keyedBlobs: this.keyedBlobs });
   }
 
   async updateFeed () {
@@ -206,7 +206,7 @@ export class Writer {
   }
 }
 
-export async function _testUpdateWriterIntegration (url, func = noop) {
+export async function testUpdateWriterIntegration (url, func = noop) {
   await withTmpDir(async (storageDir) => {
     // const writer = await Writer.fromConfig();
     const writer = new Writer(url, { storageName: storageDir });
