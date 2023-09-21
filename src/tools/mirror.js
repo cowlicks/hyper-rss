@@ -1,30 +1,25 @@
 import { mkdir, cp, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import * as cheerio from 'cheerio';
 import express from 'express';
 import Parser from 'rss-parser';
 import { parseString, Builder } from 'xml2js';
 
-import { getUrl, writeFile, renameFields, filterObj, orderObj } from '../utils/index.js';
-import { takeAll } from '../utils/async.js';
+import { writeFile, renameFields, filterObj, orderObj, downloadToBuffer } from '../utils/index.js';
 import { withTmpDir } from '../utils/tests.js';
 import { DOWNLOAD_DIR_NAME, MIRRORED_DIR } from '../const.js';
 import { createHash } from 'node:crypto';
 
 import { print } from '../dev.js';
 import { _testUpdateWriterIntegration } from '../writer.js';
-import { itemEnclosureHandler, itemImgHandler } from '../items.js';
+import { downloadAndHash, itemEnclosureHandler, itemImgHandler } from '../items.js';
 
 const RSS_PATH = 'rss.xml';
 const DEFAULT_LOCAL_ORIGIN = 'http://localhost:8080';
-const rssLocation = (name) => join(DOWNLOAD_DIR_NAME, name);
+const DEFAULT_FILE_DIRECTORY = 'files';
+const DEFAULT_PATH_PREFIX = './';
 
-export async function downloadToBuffer (url) {
-  const stream = getUrl(url);
-  const parts = await takeAll(stream);
-  return Buffer.concat(parts);
-}
+const rssLocation = (name) => join(DOWNLOAD_DIR_NAME, name);
 
 export async function download (url) {
   const buff = await downloadToBuffer(url);
@@ -134,37 +129,48 @@ export async function mutateRss (rssXmlStr, func) {
   return xmlFromJson(rssStyleJson);
 }
 
-export async function saveUrlAsHash (url, { pathPrefix = './', origin = DEFAULT_LOCAL_ORIGIN } = {}) {
-  console.log(`Downloading URL: ${url}`);
+function createLocalFilePathAndLocalUrl (url, hash, {
+  fileDirectory = DEFAULT_FILE_DIRECTORY,
+  pathPrefix = DEFAULT_PATH_PREFIX,
+  origin = DEFAULT_LOCAL_ORIGIN
+}) {
   const parts = url.split('.');
-  // TODO this was required for imgs to render
-  // There should be a more resiliant way to do this
   const extension = parts[parts.length - 1];
 
-  const buffer = await downloadToBuffer(url);
-  const d = createHash('sha256').update(buffer).digest();
-  const hash = d.toString('base64') + (extension ? '.' + extension : '');
-  console.log(`Saving URL [${url}] as [${hash}]`);
+  const fileName = hash + (extension ? '.' + extension : '');
 
-  const relPath = join('files', hash);
-  const fullPath = join(pathPrefix, relPath);
-  await writeFile(fullPath, buffer, { createDir: true });
+  const relativePath = join(fileDirectory, fileName);
+  const filePath = join(pathPrefix, relativePath);
+
   const newUrl = new URL(origin);
-  newUrl.pathname = relPath;
-  return newUrl.href;
+  newUrl.pathname = relativePath;
+
+  return { localUrl: newUrl.href, filePath };
+}
+
+export async function downloadUrlAndCreateLocalUrl (url, { ...options } = {}) {
+  console.log(`Downloading URL: ${url}`);
+  const { buffer, hash } = downloadAndHash(url);
+
+  const { localUrl, filePath } = createLocalFilePathAndLocalUrl(url, hash, { ...options });
+
+  console.log(`Saving URL [${url}] to [${filePath}]`);
+  await writeFile(filePath, buffer, { createDir: true });
+
+  return localUrl;
 }
 
 // Find an img tag in the RSS items' content tag and save it to a local file,
 // rewrite item's url to point to the new file
 export async function rewriteImage (item, options) {
-  const out = itemImgHandler(item, (url) => saveUrlAsHash(url, { ...options }));
+  const out = itemImgHandler(item, (url) => downloadUrlAndCreateLocalUrl(url, { ...options }));
   return out;
 }
 
 // Save the data from a RSS enclosure tag to a local file and rewrite the URL
 // in the feed to point to the local file
 export async function rewriteEnclosure (item, options) {
-  const out = await itemEnclosureHandler(item, (url) => saveUrlAsHash(url, { ...options }));
+  const out = await itemEnclosureHandler(item, (url) => downloadUrlAndCreateLocalUrl(url, { ...options }));
   return out;
 }
 

@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio';
-import { noop } from './utils/index.js';
+import { downloadToBuffer, noop } from './utils/index.js';
+import { createHash } from 'node:crypto';
 
 const defaultRssItemHasher = ({ guid }) => guid;
 
@@ -19,7 +20,12 @@ export async function itemsNotHyperized (rssFeed, hyperbeeItemsDb, { hasher = de
   return out;
 }
 
-// TODO DRY these functions with tools/mirrors.js stuff
+export async function downloadAndHash (url, { hashAlgorithm = 'sha256', digestEncoding = 'base64', ...options }) {
+  const buffer = await downloadToBuffer(url);
+  const d = createHash(hashAlgorithm).update(buffer).digest();
+  const hash = d.toString(digestEncoding);
+  return { buffer, hash };
+}
 
 // TODO create saveUrlToKeyedBlobs like saveUrlAsHash
 async function _saveUrlToKeyedBlobs (url, { keyedBlobs: _ }) {
@@ -70,7 +76,7 @@ async function maybeHandleImgContent (item, { keyedBlobs } = {}) {
 }
 
 // TODO use this when enclosure's and images are handled
-export async function transformItem (item) {
+export async function handleItem (item) {
   const item2 = maybeHandleEnclosure(item);
   const item3 = maybeHandleImgContent(item2);
   return item3;

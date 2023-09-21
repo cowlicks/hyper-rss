@@ -1,5 +1,5 @@
 import { KeyedBlobs } from './blobs.js';
-import { assert, withTmpDir } from './utils/tests.js';
+import { withTmpDir } from './utils/tests.js';
 import { join } from 'node:path';
 import { stat } from 'node:fs/promises';
 
