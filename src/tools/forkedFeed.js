@@ -30,7 +30,6 @@ export async function withRssSubProcess (name, func) {
     proc.on('message', (msg) => {
       if (msg.kind === SERVER_URL) {
         d.resolve(msg.data);
-        console.log(msg);
       }
     });
     const url = await d;
