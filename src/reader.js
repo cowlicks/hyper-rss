@@ -2,6 +2,7 @@ import Corestore from 'corestore';
 import goodbye from 'graceful-goodbye';
 import Hyperbee from 'hyperbee';
 import Hyperswarm from 'hyperswarm';
+import { KeyedBlobs } from './blobs.js';
 import { log } from './log.js';
 import { bufferFromBase64 } from './utils/index.js';
 
@@ -20,6 +21,7 @@ class Reader {
 
   async init ({ storageName = READER_STORAGE, ...opts } = {}) {
     log.info(`Initializing Reader with storage at = [${storageName}]`);
+
     const swarm = new Hyperswarm({ ...opts });
     goodbye(() => swarm.destroy());
     const store = new Corestore(storageName);
@@ -45,12 +47,17 @@ class Reader {
     } = await keysCore.get(0);
 
     const feedCore = store.get({ key: bufferFromBase64(keys.feed) });
+    const blobKeysCore = store.get({ key: bufferFromBase64(keys.blobKeys) });
     const blobsCore = store.get({ key: bufferFromBase64(keys.blobs) });
 
-    await Promise.all([feedCore.ready(), blobsCore.ready()]);
+    await Promise.all([feedCore.ready(), blobKeysCore.ready(), blobsCore.ready()]);
 
     const feedBTree = new Hyperbee(feedCore);
+    const blobsKeysBTree = new Hyperbee(blobKeysCore);
     const blobsBTree = new Hyperbee(blobsCore);
+
+    const keyedBlobs = new KeyedBlobs(blobKeysCore, blobsCore);
+    await keyedBlobs.init();
 
     Object.assign(
       this,
@@ -60,12 +67,15 @@ class Reader {
         cores: {
           keys: keysCore,
           feed: feedCore,
+          blobKeys: blobKeysCore,
           blobs: blobsCore
         },
         bTrees: {
           feed: feedBTree,
+          blobKeys: blobsKeysBTree,
           blobs: blobsBTree
         },
+        keyedBlobs,
         storageName
       }
     );
@@ -74,15 +84,16 @@ class Reader {
 
   async close () {
     await Promise.all([
+      this.swarm.destroy(),
+      this.store.close(),
       this.cores.keys.close(),
       this.cores.feed.close(),
-      // this.cores.blobKeys.close(),
+      this.cores.blobKeys.close(),
       this.cores.blobs.close(),
       this.bTrees.feed.close(),
-      // this.bTrees.blobKeys.close(),
+      this.bTrees.blobKeys.close(),
       this.bTrees.blobs.close(),
-      this.swarm.destroy(),
-      this.store.close()
+      this.keyedBlobs.close()
     ]);
   }
 }

@@ -8,7 +8,7 @@ import test from 'ava';
 import { getStore, getStoreAndCores, Writer, _testUpdateWriterIntegration } from './writer.js';
 import { retry } from './utils/async.js';
 import { withRssServer, download, mutateRss, jsonFromXml, xmlFromJson } from './tools/mirror.js';
-import { TEST_URLS, XKCD } from './const.js';
+import { CHAPO, TEST_URLS, XKCD } from './const.js';
 
 import { _testReaderIntegration } from './reader.js';
 import { withRssSubProcess } from './tools/forkedFeed.js';
@@ -56,13 +56,28 @@ test('test new Writer saves config and loading from it does not change it', asyn
   });
 });
 
-test('Smoke test read write',
+test('Smoke test read write XKCD',
   async (t) => {
     await withRssSubProcess(XKCD, async (url) => {
       await _testUpdateWriterIntegration(url, async (x) => {
         await withTmpDir(async (tmpd) => {
           const readItems = await _testReaderIntegration(tmpd, x);
+          // TODO check blob size
           t.is(readItems.length, 4);
+          t.pass();
+        });
+      });
+    });
+  }
+);
+
+test('Smoke test read write CHAPO',
+  async (t) => {
+    await withRssSubProcess(CHAPO, async (url) => {
+      await _testUpdateWriterIntegration(url, async (x) => {
+        await withTmpDir(async (tmpd) => {
+          const readItems = await _testReaderIntegration(tmpd, x);
+          t.is(readItems.length, 5);
           t.pass();
         });
       });
