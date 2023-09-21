@@ -5,7 +5,7 @@ import Hyperbee from 'hyperbee';
 import { base64FromBuffer, noop, readJsonFile, writeJsonFile } from './utils/index.js';
 import { log } from './log.js';
 import { itemsNotHyperized } from './items.js';
-import { getEnclosure } from './blobs.js';
+import { getEnclosure, KeyedBlobs } from './blobs.js';
 import { swarmInit } from './swarm.js';
 
 import { withTmpDir } from './utils/tests.js';
@@ -73,6 +73,9 @@ async function initWriter (url, { ...opts } = {}) {
     });
   }
 
+  const keyedBlobs = new KeyedBlobs(blobKeys, blobs);
+  await keyedBlobs.init();
+
   return {
     store,
     swarm,
@@ -84,6 +87,7 @@ async function initWriter (url, { ...opts } = {}) {
       blobKeys: new Hyperbee(blobKeys),
       blobs: new Hyperbee(blobs)
     },
+    keyedBlobs,
     ...storeAndCoreRest
   };
 }
@@ -154,6 +158,8 @@ export class Writer {
 
   async close () {
     await Promise.all([
+      this.swarm.destroy(),
+      this.store.close(),
       this.cores.keys.close(),
       this.cores.feed.close(),
       this.cores.blobKeys.close(),
@@ -161,8 +167,7 @@ export class Writer {
       this.bTrees.feed.close(),
       this.bTrees.blobKeys.close(),
       this.bTrees.blobs.close(),
-      this.swarm.destroy(),
-      this.store.close()
+      this.keyedBlobs.close()
     ]);
   }
 
