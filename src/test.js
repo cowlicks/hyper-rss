@@ -58,7 +58,6 @@ test('test new Writer saves config and loading from it does not change it', asyn
 
 async function withWriter (url, testFunc) {
   await withTmpDir(async (storageDir) => {
-    // const writer = await Writer.fromConfig();
     const writer = new Writer(url, { storageName: storageDir });
     await writer.init();
     await writer.updateFeed();
@@ -83,7 +82,8 @@ test('Smoke test read write XKCD',
       await withWriter(url, async (writer) => {
         await withReader(writer.discoveryKeyString(), async (reader) => {
           const readItems = await takeAll(reader.bTrees.feed.createReadStream());
-          // TODO check blob size
+          const blobKeys = await writer.keyedBlobs.getKeys();
+          t.is(blobKeys.length, 0);
           t.is(readItems.length, 4);
           t.pass();
         });
@@ -98,8 +98,8 @@ test('Smoke test read write CHAPO',
       await withWriter(url, async (writer) => {
         await withReader(writer.discoveryKeyString(), async (reader) => {
           const readItems = await takeAll(reader.bTrees.feed.createReadStream());
-          const keys = await writer.keyedBlobs.getKeys();
-          t.is(keys.length, 5);
+          const blobKeys = await writer.keyedBlobs.getKeys();
+          t.is(blobKeys.length, 5);
           t.is(readItems.length, 5);
           t.pass();
         });
