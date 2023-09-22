@@ -3,13 +3,11 @@ import Parser from 'rss-parser';
 import Corestore from 'corestore';
 import Hyperbee from 'hyperbee';
 
-import { base64FromBuffer, noop, readJsonFile, writeJsonFile } from './utils/index.js';
+import { base64FromBuffer, readJsonFile, writeJsonFile } from './utils/index.js';
 import { log } from './log.js';
 import { handleItem, itemsNotHyperized } from './items.js';
-import { getEnclosure, KeyedBlobs } from './blobs.js';
+import { KeyedBlobs } from './blobs.js';
 import { swarmInit } from './swarm.js';
-
-import { withTmpDir } from './utils/tests.js';
 
 const WRITER_STORAGE = './writer-storage';
 const HRSS_STORE_PREFIX = 'hrss';

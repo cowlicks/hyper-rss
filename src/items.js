@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio';
-import { downloadToBuffer, noop } from './utils/index.js';
+import { downloadToBuffer } from './utils/index.js';
 import { createHash } from 'node:crypto';
 
 const defaultRssItemHasher = ({ guid }) => guid;
@@ -20,7 +20,10 @@ export async function itemsNotHyperized (rssFeed, hyperbeeItemsDb, { hasher = de
   return out;
 }
 
-export async function downloadAndHash (url, { hashAlgorithm = 'sha256', digestEncoding = 'base64', ...options }) {
+export async function downloadAndHash (url, {
+  hashAlgorithm = 'sha256',
+  digestEncoding = 'base64'
+}) {
   const buffer = await downloadToBuffer(url);
   const d = createHash(hashAlgorithm).update(buffer).digest();
   const hash = d.toString(digestEncoding);
@@ -72,25 +75,23 @@ export async function itemImgHandler (item, urlHandler) {
   return item;
 }
 
-// TODO
 async function maybeHandleEnclosure (item, { keyedBlobs, ...options } = {}) {
   const out = itemEnclosureHandler(item, async (url) => {
-    const fileName = await saveUrlToKeyedBlobs(url, { keyedBlobs, ...options });
-    return fileName;
+    return saveUrlToKeyedBlobs(url, { keyedBlobs, ...options });
   });
   return out;
 }
 
-// TODO
-async function maybeHandleImgContent (item, { keyedBlobs } = {}) {
-  const out = itemImgHandler(item, noop);
+async function maybeHandleImgContent (item, { keyedBlobs, ...options } = {}) {
+  const out = itemImgHandler(item, async (url) => {
+    return saveUrlToKeyedBlobs(url, { keyedBlobs, ...options });
+  });
   return out;
 }
 
 // TODO use this when enclosure's and images are handled
 export async function handleItem (item, { keyedBlobs, ...options }) {
   const item2 = maybeHandleEnclosure(item, { keyedBlobs, ...options });
-  return item2;
-  // const item3 = maybeHandleImgContent(item2);
-  // return item3;
+  const item3 = maybeHandleImgContent(item2);
+  return item3;
 }

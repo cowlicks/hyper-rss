@@ -221,4 +221,4 @@ export async function withContext ({ enter = async () => {}, exit = async () => 
     throw error;
   }
 }
-export const noop = (x) => x;
+export const identity = (x) => x;

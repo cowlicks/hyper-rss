@@ -1,16 +1,7 @@
 import Hyperbee from 'hyperbee';
 import Hyperblobs from 'hyperblobs';
 import { storeNames } from './writer.js';
-import { getUrl } from './utils/index.js';
 import { takeAll } from './utils/async.js';
-// TODO rewrite url in the enclosure to anonymize it
-export async function getEnclosure (enclosure) {
-  const chunks = [];
-  for await (const chunk of getUrl(enclosure.url)) {
-    chunks.push(chunk);
-  }
-  return Buffer.concat(chunks);
-}
 
 export class KeyedBlobs {
   static fromStore (store, { ...rest } = {}) {
