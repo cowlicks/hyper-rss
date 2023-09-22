@@ -83,7 +83,7 @@ async function maybeHandleEnclosure (item, { keyedBlobs, ...options } = {}) {
 }
 
 async function maybeHandleImgContent (item, { keyedBlobs, ...options } = {}) {
-  const out = itemImgHandler(item, async (url) => {
+  const out = await itemImgHandler(item, async (url) => {
     return saveUrlToKeyedBlobs(url, { keyedBlobs, ...options });
   });
   return out;
@@ -91,7 +91,7 @@ async function maybeHandleImgContent (item, { keyedBlobs, ...options } = {}) {
 
 // TODO use this when enclosure's and images are handled
 export async function handleItem (item, { keyedBlobs, ...options }) {
-  const item2 = maybeHandleEnclosure(item, { keyedBlobs, ...options });
-  const item3 = maybeHandleImgContent(item2);
+  const item2 = await maybeHandleEnclosure(item, { keyedBlobs, ...options });
+  const item3 = await maybeHandleImgContent(item2, { keyedBlobs, ...options });
   return item3;
 }
