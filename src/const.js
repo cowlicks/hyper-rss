@@ -23,3 +23,6 @@ export const MIRRORED_DIR_NAME = 'mirrors';
 export const MIRRORED_DIR = join(ROOT_DIR, MIRRORED_DIR_NAME);
 export const STOP_PROCESS = 'stop_process';
 export const SERVER_URL = 'server_url';
+
+export const WRITER_PEER_KIND = 'writer_peer_kind';
+export const READER_PEER_KIND = 'reader_peer_kind';

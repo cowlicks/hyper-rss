@@ -4,6 +4,10 @@ import { takeAll } from './utils/async.js';
 
 // The base for reader's and writer's
 export class Peer {
+  constructor (peerKind) {
+    Object.assign(this, { peerKind });
+  }
+
   async ready ({ keys, feed, blobKeys, blobs }) {
     await Promise.all([
       keys.ready(),

@@ -9,6 +9,7 @@ import { handleItem, itemsNotHyperized } from './items.js';
 import { KeyedBlobs } from './blobs.js';
 import { swarmInit } from './swarm.js';
 import { Peer } from './peer.js';
+import { WRITER_PEER_KIND } from './const.js';
 
 const WRITER_STORAGE = './writer-storage';
 const HRSS_STORE_PREFIX = 'hrss';
@@ -95,7 +96,7 @@ export class Writer extends Peer {
   }
 
   constructor (url, { configFileName = DEFAULT_WRITER_CONFIG_FILE_NAME, ...opts } = {}) {
-    super();
+    super(WRITER_PEER_KIND);
     log.info(`Creating writer for URL = [${url}]`);
     const parser = new Parser();
     Object.assign(

@@ -1,17 +1,16 @@
 import Corestore from 'corestore';
 import goodbye from 'graceful-goodbye';
-import Hyperbee from 'hyperbee';
 import Hyperswarm from 'hyperswarm';
-import { KeyedBlobs } from './blobs.js';
 import { log } from './log.js';
 import { bufferFromBase64 } from './utils/index.js';
 import { Peer } from './peer.js';
+import { READER_PEER_KIND } from './const.js';
 
 const READER_STORAGE = './reader-storage';
 
 export class Reader extends Peer {
   constructor (discoveryKeyString) {
-    super();
+    super(READER_PEER_KIND);
     log.info(`Creating Reader for discovery key = [${discoveryKeyString}]`);
     Object.assign(
       this,
