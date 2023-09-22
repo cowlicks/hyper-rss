@@ -78,13 +78,15 @@ async function withReader (discoveryKey, testFunc) {
 
 test('Smoke test read write XKCD',
   async (t) => {
+    const nBlobs = 4,
+      nFeedItems = 4;
     await withRssSubProcess(XKCD, async (url) => {
       await withWriter(url, async (writer) => {
+        t.is((await takeAll(writer.bTrees.feed.createReadStream())).length, nFeedItems);
+        t.is((await writer.keyedBlobs.getKeys()).length, nBlobs);
         await withReader(writer.discoveryKeyString(), async (reader) => {
-          const readItems = await takeAll(reader.bTrees.feed.createReadStream());
-          const blobKeys = await writer.keyedBlobs.getKeys();
-          t.is(blobKeys.length, 4);
-          t.is(readItems.length, 4);
+          t.is((await takeAll(reader.bTrees.feed.createReadStream())).length, nFeedItems);
+          t.is((await reader.keyedBlobs.getKeys()).length, nBlobs);
           t.pass();
         });
       });
@@ -94,19 +96,15 @@ test('Smoke test read write XKCD',
 
 test('Smoke test read write CHAPO',
   async (t) => {
+    const nBlobs = 5,
+      nFeedItems = 5;
     await withRssSubProcess(CHAPO, async (url) => {
       await withWriter(url, async (writer) => {
+        t.is((await takeAll(writer.bTrees.feed.createReadStream())).length, nFeedItems);
+        t.is((await writer.keyedBlobs.getKeys()).length, nBlobs);
         await withReader(writer.discoveryKeyString(), async (reader) => {
-          const readItems = await takeAll(reader.bTrees.feed.createReadStream());
-          t.is(readItems.length, 5);
-          t.is(
-            (await writer.keyedBlobs.getKeys()).length,
-            5
-          );
-          t.is(
-            (await reader.keyedBlobs.getKeys()).length,
-            5
-          );
+          t.is((await takeAll(reader.bTrees.feed.createReadStream())).length, nFeedItems);
+          t.is((await reader.keyedBlobs.getKeys()).length, nBlobs);
           t.pass();
         });
       });

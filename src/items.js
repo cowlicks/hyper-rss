@@ -41,8 +41,7 @@ export async function downloadAndCreateFilename (url, { ...options }) {
 // TODO create saveUrlToKeyedBlobs like saveUrlAsHash
 async function saveUrlToKeyedBlobs (url, { keyedBlobs, ...options }) {
   const { buffer, fileName } = await downloadAndCreateFilename(url, { ...options });
-  keyedBlobs.maybePut(fileName, buffer);
-  // TODO
+  await keyedBlobs.maybePut(fileName, buffer);
   return fileName;
 }
 
