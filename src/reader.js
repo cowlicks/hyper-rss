@@ -5,11 +5,13 @@ import Hyperswarm from 'hyperswarm';
 import { KeyedBlobs } from './blobs.js';
 import { log } from './log.js';
 import { bufferFromBase64 } from './utils/index.js';
+import { Peer } from './peer.js';
 
 const READER_STORAGE = './reader-storage';
 
-export class Reader {
+export class Reader extends Peer {
   constructor (discoveryKeyString) {
+    super();
     log.info(`Creating Reader for discovery key = [${discoveryKeyString}]`);
     Object.assign(
       this,
@@ -53,8 +55,6 @@ export class Reader {
     await Promise.all([feedCore.ready(), blobKeysCore.ready(), blobsCore.ready()]);
 
     const feedBTree = new Hyperbee(feedCore);
-    const blobsKeysBTree = new Hyperbee(blobKeysCore);
-    const blobsBTree = new Hyperbee(blobsCore);
 
     const keyedBlobs = new KeyedBlobs(blobKeysCore, blobsCore);
     await keyedBlobs.init();
@@ -71,29 +71,12 @@ export class Reader {
           blobs: blobsCore
         },
         bTrees: {
-          feed: feedBTree,
-          blobKeys: blobsKeysBTree,
-          blobs: blobsBTree
+          feed: feedBTree
         },
         keyedBlobs,
         storageName
       }
     );
     return this;
-  }
-
-  async close () {
-    await Promise.all([
-      this.swarm.destroy(),
-      this.store.close(),
-      this.cores.keys.close(),
-      this.cores.feed.close(),
-      this.cores.blobKeys.close(),
-      this.cores.blobs.close(),
-      this.bTrees.feed.close(),
-      this.bTrees.blobKeys.close(),
-      this.bTrees.blobs.close(),
-      this.keyedBlobs.close()
-    ]);
   }
 }

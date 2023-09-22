@@ -83,7 +83,7 @@ test('Smoke test read write XKCD',
         await withReader(writer.discoveryKeyString(), async (reader) => {
           const readItems = await takeAll(reader.bTrees.feed.createReadStream());
           const blobKeys = await writer.keyedBlobs.getKeys();
-          t.is(blobKeys.length, 0);
+          t.is(blobKeys.length, 4);
           t.is(readItems.length, 4);
           t.pass();
         });
@@ -98,9 +98,15 @@ test('Smoke test read write CHAPO',
       await withWriter(url, async (writer) => {
         await withReader(writer.discoveryKeyString(), async (reader) => {
           const readItems = await takeAll(reader.bTrees.feed.createReadStream());
-          const blobKeys = await writer.keyedBlobs.getKeys();
-          t.is(blobKeys.length, 5);
           t.is(readItems.length, 5);
+          t.is(
+            (await writer.keyedBlobs.getKeys()).length,
+            5
+          );
+          t.is(
+            (await reader.keyedBlobs.getKeys()).length,
+            5
+          );
           t.pass();
         });
       });

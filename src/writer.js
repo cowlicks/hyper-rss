@@ -8,6 +8,7 @@ import { log } from './log.js';
 import { handleItem, itemsNotHyperized } from './items.js';
 import { KeyedBlobs } from './blobs.js';
 import { swarmInit } from './swarm.js';
+import { Peer } from './peer.js';
 
 const WRITER_STORAGE = './writer-storage';
 const HRSS_STORE_PREFIX = 'hrss';
@@ -116,7 +117,7 @@ function isFromConfig (o) {
 // TODO rewrite this to use Keyed blobs
 // TODO Writer should load URL from store if it exists. Otherwise we should
 // only provide a URL for a brand new Writer
-export class Writer {
+export class Writer extends Peer {
   static async fromConfig (configFileName = DEFAULT_WRITER_CONFIG_FILE_NAME) {
     const { url, ...opts } = await readJsonFile(configFileName);
     const writer = new Writer(url, { ...opts });
@@ -129,6 +130,7 @@ export class Writer {
   }
 
   constructor (url, { configFileName = DEFAULT_WRITER_CONFIG_FILE_NAME, ...opts } = {}) {
+    super();
     log.info(`Creating writer for URL = [${url}]`);
     const parser = new Parser();
     Object.assign(
@@ -148,19 +150,6 @@ export class Writer {
     );
     await this.maybeSaveConfig();
     return this;
-  }
-
-  async close () {
-    await Promise.all([
-      this.swarm.destroy(),
-      this.store.close(),
-      this.cores.keys.close(),
-      this.cores.feed.close(),
-      this.cores.blobKeys.close(),
-      this.cores.blobs.close(),
-      this.bTrees.feed.close(),
-      this.keyedBlobs.close()
-    ]);
   }
 
   getMissing () {
