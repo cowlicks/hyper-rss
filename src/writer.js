@@ -55,41 +55,6 @@ export function getStoreAndCores ({ ...opts } = {}) {
   return { store, cores, ...storeRest };
 }
 
-async function initWriter (url, { ...opts } = {}) {
-  const { store, cores: { keys, feed, blobKeys, blobs }, ...storeAndCoreRest } = getStoreAndCores({ ...opts });
-
-  await Promise.all([keys.ready(), feed.ready(), blobKeys.ready(), blobs.ready()]);
-
-  const { swarm, peerDiscovery } = swarmInit(keys.discoveryKey, store);
-  await peerDiscovery.flushed();
-
-  if (keys.length === 0) {
-    await keys.append({
-      keys: {
-        feed: base64FromBuffer(feed.key),
-        blobKeys: base64FromBuffer(blobKeys.key),
-        blobs: base64FromBuffer(blobs.key)
-      }
-    });
-  }
-
-  const keyedBlobs = new KeyedBlobs(blobKeys, blobs);
-  await keyedBlobs.init();
-
-  return {
-    store,
-    swarm,
-    cores: {
-      keys, feed, blobKeys, blobs
-    },
-    bTrees: {
-      feed: new Hyperbee(feed)
-    },
-    keyedBlobs,
-    ...storeAndCoreRest
-  };
-}
-
 async function addItem (key, item, { feedBatcher, keyedBlobs }) {
   const item2 = await handleItem(item, { keyedBlobs });
   await feedBatcher.put(key, JSON.stringify(item2));
@@ -141,10 +106,32 @@ export class Writer extends Peer {
 
   async init () {
     const parsedRssFeed = await this.parser.parseURL(this.url);
+    const { store, cores: { keys, feed, blobKeys, blobs }, ...storeAndCoreRest } = getStoreAndCores({ ...this.opts });
+
+    const { cores, bTrees, keyedBlobs } = await this.ready({ keys, feed, blobKeys, blobs });
+
+    const { swarm, peerDiscovery } = swarmInit(keys.discoveryKey, store);
+    await peerDiscovery.flushed();
+
+    if (keys.length === 0) {
+      await keys.append({
+        keys: {
+          feed: base64FromBuffer(feed.key),
+          blobKeys: base64FromBuffer(blobKeys.key),
+          blobs: base64FromBuffer(blobs.key)
+        }
+      });
+    }
+
     Object.assign(
       this,
       {
-        ...(await initWriter(this.url, this.opts)),
+        store,
+        swarm,
+        cores,
+        bTrees,
+        keyedBlobs,
+        ...storeAndCoreRest,
         parsedRssFeed
       }
     );

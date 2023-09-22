@@ -82,10 +82,10 @@ test('Smoke test read write XKCD',
       nFeedItems = 4;
     await withRssSubProcess(XKCD, async (url) => {
       await withWriter(url, async (writer) => {
-        t.is((await takeAll(writer.bTrees.feed.createReadStream())).length, nFeedItems);
+        t.is((await writer.getFeed()).length, nFeedItems);
         t.is((await writer.keyedBlobs.getKeys()).length, nBlobs);
         await withReader(writer.discoveryKeyString(), async (reader) => {
-          t.is((await takeAll(reader.bTrees.feed.createReadStream())).length, nFeedItems);
+          t.is((await reader.getFeed()).length, nFeedItems);
           t.is((await reader.keyedBlobs.getKeys()).length, nBlobs);
           t.pass();
         });
@@ -100,10 +100,10 @@ test('Smoke test read write CHAPO',
       nFeedItems = 5;
     await withRssSubProcess(CHAPO, async (url) => {
       await withWriter(url, async (writer) => {
-        t.is((await takeAll(writer.bTrees.feed.createReadStream())).length, nFeedItems);
+        t.is((await writer.getFeed()).length, nFeedItems);
         t.is((await writer.keyedBlobs.getKeys()).length, nBlobs);
         await withReader(writer.discoveryKeyString(), async (reader) => {
-          t.is((await takeAll(reader.bTrees.feed.createReadStream())).length, nFeedItems);
+          t.is((await reader.getFeed()).length, nFeedItems);
           t.is((await reader.keyedBlobs.getKeys()).length, nBlobs);
           t.pass();
         });

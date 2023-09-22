@@ -52,28 +52,17 @@ export class Reader extends Peer {
     const blobKeysCore = store.get({ key: bufferFromBase64(keys.blobKeys) });
     const blobsCore = store.get({ key: bufferFromBase64(keys.blobs) });
 
-    await Promise.all([feedCore.ready(), blobKeysCore.ready(), blobsCore.ready()]);
-
-    const feedBTree = new Hyperbee(feedCore);
-
-    const keyedBlobs = new KeyedBlobs(blobKeysCore, blobsCore);
-    await keyedBlobs.init();
-
     Object.assign(
       this,
       {
         store,
         swarm,
-        cores: {
+        ...(await this.ready({
           keys: keysCore,
           feed: feedCore,
           blobKeys: blobKeysCore,
           blobs: blobsCore
-        },
-        bTrees: {
-          feed: feedBTree
-        },
-        keyedBlobs,
+        })),
         storageName
       }
     );
