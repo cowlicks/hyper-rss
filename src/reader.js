@@ -10,8 +10,8 @@ const READER_STORAGE = './reader-storage';
 
 export class Reader extends Peer {
   constructor (discoveryKeyString) {
-    super(READER_PEER_KIND);
     log.info(`Creating Reader for discovery key = [${discoveryKeyString}]`);
+    super(READER_PEER_KIND);
     Object.assign(
       this,
       {

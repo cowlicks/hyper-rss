@@ -56,21 +56,6 @@ export function getStoreAndCores ({ ...opts } = {}) {
   return { store, cores, ...storeRest };
 }
 
-async function addItem (key, item, { feedBatcher, keyedBlobs }) {
-  const item2 = await handleItem(item, { keyedBlobs });
-  await feedBatcher.put(key, JSON.stringify(item2));
-}
-
-async function addMissing (missing, { feed, keyedBlobs }) {
-  const feedBatcher = feed.batch();
-
-  log.info(`# missing = [${missing.length}]`);
-  for (const { key, rssItem } of missing) {
-    await addItem(key, rssItem, { feedBatcher, keyedBlobs });
-  }
-  await Promise.all([feedBatcher.flush()]);
-}
-
 const fromConfigPropertyName = 'fromConfig';
 function setFromConfig (o) {
   o[fromConfigPropertyName] = true;
@@ -80,7 +65,6 @@ function isFromConfig (o) {
   return !!o[fromConfigPropertyName];
 }
 
-// TODO rewrite this to use Keyed blobs
 // TODO Writer should load URL from store if it exists. Otherwise we should
 // only provide a URL for a brand new Writer
 export class Writer extends Peer {
@@ -96,8 +80,8 @@ export class Writer extends Peer {
   }
 
   constructor (url, { configFileName = DEFAULT_WRITER_CONFIG_FILE_NAME, ...opts } = {}) {
-    super(WRITER_PEER_KIND);
     log.info(`Creating writer for URL = [${url}]`);
+    super(WRITER_PEER_KIND);
     const parser = new Parser();
     Object.assign(
       this,
@@ -144,8 +128,15 @@ export class Writer extends Peer {
     return itemsNotHyperized(this.parsedRssFeed.items, this.bTrees.feed);
   }
 
-  addNewItems (newItems) {
-    return addMissing(newItems, { feed: this.bTrees.feed, keyedBlobs: this.keyedBlobs });
+  async addNewItems (newItems) {
+    const feedBatcher = this.bTrees.feed.batch();
+
+    log.info(`# new items = [${newItems.length}]`);
+    for (const { key, rssItem } of newItems) {
+      const handled = await handleItem(rssItem, { keyedBlobs: this.keyedBlobs });
+      await feedBatcher.put(key, JSON.stringify(handled));
+    }
+    await Promise.all([feedBatcher.flush()]);
   }
 
   async updateFeed () {
