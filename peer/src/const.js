@@ -14,13 +14,16 @@ export const TEST_URLS = {
 };
 
 export const DOWNLOAD_DIR_NAME = 'downloads';
+export const MIRRORED_DIR_NAME = 'mirrors';
 
 export const CONST_JS_FILENAME = fileURLToPath(import.meta.url);
-export const SRC_DIR = dirname(CONST_JS_FILENAME);
-export const ROOT_DIR = join(SRC_DIR, '..');
 
-export const MIRRORED_DIR_NAME = 'mirrors';
+export const SRC_DIR = dirname(CONST_JS_FILENAME);
+export const ROOT_DIR = join(SRC_DIR, '../..');
+
 export const MIRRORED_DIR = join(ROOT_DIR, MIRRORED_DIR_NAME);
+export const DOWNLOAD_DIR = join(ROOT_DIR, DOWNLOAD_DIR_NAME);
+
 export const STOP_PROCESS = 'stop_process';
 export const SERVER_URL = 'server_url';
 

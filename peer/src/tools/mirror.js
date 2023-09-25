@@ -7,7 +7,7 @@ import { parseString, Builder } from 'xml2js';
 
 import { writeFile, renameFields, filterObj, orderObj, downloadToBuffer } from '../utils/index.js';
 import { withTmpDir } from '../utils/tests.js';
-import { DOWNLOAD_DIR_NAME, MIRRORED_DIR } from '../const.js';
+import { DOWNLOAD_DIR, MIRRORED_DIR } from '../const.js';
 
 import { print } from '../dev.js';
 import { downloadAndCreateFilename, itemEnclosureHandler, itemImgHandler } from '../items.js';
@@ -17,7 +17,7 @@ const DEFAULT_LOCAL_ORIGIN = 'http://localhost:8080';
 const DEFAULT_FILE_DIRECTORY = 'files';
 const DEFAULT_PATH_PREFIX = './';
 
-const rssLocation = (name) => join(DOWNLOAD_DIR_NAME, name);
+const rssLocation = (name) => join(DOWNLOAD_DIR, name);
 
 export async function download (url) {
   const buff = await downloadToBuffer(url);
