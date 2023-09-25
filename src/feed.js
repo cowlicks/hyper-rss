@@ -1,4 +1,5 @@
 import Hyperbee from 'hyperbee';
+import { RSS_METADATA_FIELDS } from './const.js';
 
 const KEY_NAMESPACE = 'key',
   METADATA_NAMESPACE = 'metadata',
@@ -39,18 +40,21 @@ export class OrderedHyperbee extends Hyperbee {
     return this.sub(METADATA_NAMESPACE).put(key, value, options);
   }
 
+  async getMetadata () {
+    const out = {};
+    for (const field in RSS_METADATA_FIELDS) {
+      out[field] = await this.getMetadataValue(field);
+    }
+    return out;
+  }
+
   async hasKey (key) {
     return !!(await this.sub(KEY_NAMESPACE).get(key));
   }
 
-  // TODO finish this.
   async putOrderdItem (key, value) {
-    // get the order db
-    // Get highest index of the ordered db
-    // insert at order with key
+    // Should we check if the key exists already?
     await this.putNextInOrder(key);
-
-    // insert it into the feed db
     const out = await this.sub(KEY_NAMESPACE).put(key, value);
     return out;
   }
