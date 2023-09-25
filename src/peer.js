@@ -1,11 +1,20 @@
 import { OrderedHyperbee } from './feed.js';
 import { KeyedBlobs } from './blobs.js';
 import { takeAll } from './utils/async.js';
+import { randName } from './utils/index.js';
+import { log } from './log.js';
 
 // The base for reader's and writer's
 export class Peer {
   constructor (peerKind) {
-    Object.assign(this, { peerKind });
+    Object.assign(this, {
+      peerKind,
+      name: randName()
+    });
+  }
+
+  get log () {
+    return (...x) => log.info(`Peer[${this.peerKind}][${this.name}]`, ...x);
   }
 
   async ready ({ keys, feed, blobKeys, blobs }) {

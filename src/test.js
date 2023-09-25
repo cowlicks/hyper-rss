@@ -56,13 +56,22 @@ test('test new Writer saves config and loading from it does not change it', asyn
   });
 });
 
-async function withWriter (url, testFunc) {
+async function withTmpWriter (url, func) {
   await withTmpDir(async (storageDir) => {
     const writer = new Writer(url, { storageName: storageDir });
     await writer.init();
+    try {
+      await func(writer);
+    } finally {
+      await writer.close();
+    }
+  });
+}
+
+async function withUpdatedWriter (url, testFunc) {
+  await withTmpWriter(url, async (writer) => {
     await writer.updateFeed();
     await testFunc(writer);
-    await writer.close();
   });
 }
 
@@ -71,17 +80,21 @@ async function withReader (discoveryKey, testFunc) {
     const reader = new Reader(discoveryKey);
     await reader.init({ storageName });
     await reader.bTrees.feed.update({ wait: true });
-    await testFunc(reader);
-    await reader.close();
+    try {
+      await testFunc(reader);
+    } finally {
+      await reader.close();
+    }
   });
 }
 
 test('Smoke test read write XKCD',
   async (t) => {
+    t.timeout(1e3 * 100);
     const nBlobs = 4,
       nFeedItems = 4;
     await withRssSubProcess(XKCD, async (url) => {
-      await withWriter(url, async (writer) => {
+      await withUpdatedWriter(url, async (writer) => {
         t.is((await writer.getFeed()).length, nFeedItems);
         t.is((await writer.keyedBlobs.getKeys()).length, nBlobs);
         await withReader(writer.discoveryKeyString(), async (reader) => {
@@ -96,10 +109,11 @@ test('Smoke test read write XKCD',
 
 test('Smoke test read write CHAPO',
   async (t) => {
+    t.timeout(1e3 * 100);
     const nBlobs = 5,
       nFeedItems = 5;
     await withRssSubProcess(CHAPO, async (url) => {
-      await withWriter(url, async (writer) => {
+      await withUpdatedWriter(url, async (writer) => {
         t.is((await writer.getFeed()).length, nFeedItems);
         t.is((await writer.keyedBlobs.getKeys()).length, nBlobs);
         await withReader(writer.discoveryKeyString(), async (reader) => {
@@ -145,11 +159,15 @@ test('KeyedBlobs.fromStore', async (t) => {
 
 test('Writer get feed title',
   async (t) => {
+    t.timeout(1e3 * 100);
     await withRssSubProcess(CHAPO, async (url) => {
-      await withWriter(url, async (writer) => {
+      await withTmpWriter(url, async (writer) => {
         const title = 'Chapo Trap House';
+        const description = 'Podcast by Chapo Trap House';
+
         await writer.updateMetadata();
         t.is(await writer.bTrees.feed.getMetadataValue('title'), title);
+        t.is(await writer.bTrees.feed.getMetadataValue('description'), description);
         t.pass();
       });
     });

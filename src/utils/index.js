@@ -5,7 +5,7 @@ export * from './net.js';
 
 const alph = 'abcdefghijklmnopqrstuvwxyz';
 
-const randName = (len = 6) => {
+export const randName = (len = 6) => {
   return new Array(len).fill(0).map(() => alph[Math.floor(Math.random() * 26)]).join('');
 };
 

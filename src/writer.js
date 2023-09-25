@@ -7,7 +7,7 @@ import { log } from './log.js';
 import { handleItem, itemsNotHyperized } from './items.js';
 import { swarmInit } from './swarm.js';
 import { Peer } from './peer.js';
-import { WRITER_PEER_KIND } from './const.js';
+import { RSS_METADATA_FIELDS, WRITER_PEER_KIND } from './const.js';
 
 const WRITER_STORAGE = './writer-storage';
 const HRSS_STORE_PREFIX = 'hrss';
@@ -36,6 +36,7 @@ export function storeNames ({
 export function getStore ({ storageName = WRITER_STORAGE } = {}) {
   log.info(`Initializing Corestore at = [${storageName}]`);
   const store = new Corestore(storageName);
+  log.info(`Created Corestore at = [${storageName}]`);
   return { store, storageName };
 }
 
@@ -78,13 +79,13 @@ export class Writer extends Peer {
   }
 
   constructor (url, { configFileName = DEFAULT_WRITER_CONFIG_FILE_NAME, ...opts } = {}) {
-    log.info(`Creating writer for URL = [${url}]`);
     super(WRITER_PEER_KIND);
     const parser = new Parser();
     Object.assign(
       this,
       { url, configFileName, opts, parser }
     );
+    this.log(`Created for URL = [${url}]`);
   }
 
   async init () {
@@ -92,9 +93,11 @@ export class Writer extends Peer {
     const { store, cores: { keys, feed, blobKeys, blobs }, ...storeAndCoreRest } = getStoreAndCores({ ...this.opts });
 
     const { cores, bTrees, keyedBlobs } = await this.ready({ keys, feed, blobKeys, blobs });
+    this.log('Cores made ready');
 
     const { swarm, peerDiscovery } = swarmInit(keys.discoveryKey, store);
     await peerDiscovery.flushed();
+    this.log('Peer discovery flushed');
 
     if (keys.length === 0) {
       await keys.append({
@@ -127,19 +130,20 @@ export class Writer extends Peer {
   }
 
   async addNewItems (newItems) {
-    log.info(`# new items = [${newItems.length}]`);
+    this.log(`# new items = [${newItems.length}]`);
     for (const { key, rssItem } of newItems) {
       const handled = await handleItem(rssItem, { keyedBlobs: this.keyedBlobs });
       await this.bTrees.feed.putOrderdItem(key, JSON.stringify(handled));
     }
   }
 
-  // TODO finish this. Make it update all metadata
   async updateMetadata () {
-    const key = 'title';
-    const value = this.parsedRssFeed[key];
-    console.log(value);
-    await this.bTrees.feed.maybeUpdateMetadata(key, JSON.stringify(this.parsedRssFeed[key]));
+    for (const field of RSS_METADATA_FIELDS) {
+      const value = this.parsedRssFeed[field];
+      if (typeof value !== 'undefined') {
+        await this.bTrees.feed.maybeUpdateMetadata(field, JSON.stringify(value));
+      }
+    }
   }
 
   async updateFeed () {
@@ -160,7 +164,7 @@ export class Writer extends Peer {
   }
 
   async saveConfig (configFileName = (this.configFileName ?? DEFAULT_WRITER_CONFIG_FILE_NAME)) {
-    console.log('saving config to ', configFileName);
+    this.log('saving config to ', configFileName);
     return await writeJsonFile(configFileName, {
       url: this.url,
       storageName: this.storageName,
