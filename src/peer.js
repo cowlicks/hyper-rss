@@ -1,4 +1,4 @@
-import Hyperbee from 'hyperbee';
+import { OrderedHyperbee } from './feed.js';
 import { KeyedBlobs } from './blobs.js';
 import { takeAll } from './utils/async.js';
 
@@ -16,7 +16,7 @@ export class Peer {
       blobs.ready()
     ]);
 
-    const feedBTree = new Hyperbee(feed);
+    const feedBTree = new OrderedHyperbee(feed);
     const keyedBlobs = new KeyedBlobs(blobKeys, blobs);
     await keyedBlobs.init();
 
@@ -35,7 +35,7 @@ export class Peer {
   }
 
   async getFeed () {
-    return await takeAll(this.bTrees.feed.createReadStream());
+    return await takeAll(this.bTrees.feed.getUnorderedFeedStream());
   }
 
   async close () {

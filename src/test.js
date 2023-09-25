@@ -7,7 +7,7 @@ import { stat } from 'node:fs/promises';
 import test from 'ava';
 
 import { getStore, getStoreAndCores, Writer } from './writer.js';
-import { retry, takeAll } from './utils/async.js';
+import { retry } from './utils/async.js';
 import { withRssServer, download, mutateRss, jsonFromXml, xmlFromJson } from './tools/mirror.js';
 import { CHAPO, TEST_URLS, XKCD } from './const.js';
 
@@ -142,3 +142,16 @@ test('KeyedBlobs.fromStore', async (t) => {
     t.deepEqual(gotten, TEST_BUFFER);
   });
 });
+
+test('Writer get feed title',
+  async (t) => {
+    await withRssSubProcess(CHAPO, async (url) => {
+      await withWriter(url, async (writer) => {
+        const title = 'Chapo Trap House';
+        await writer.updateMetadata();
+        t.is(await writer.bTrees.feed.getMetadataValue('title'), title);
+        t.pass();
+      });
+    });
+  }
+);

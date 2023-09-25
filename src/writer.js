@@ -1,12 +1,10 @@
 // Propagate keyed blobs cores through
 import Parser from 'rss-parser';
 import Corestore from 'corestore';
-import Hyperbee from 'hyperbee';
 
 import { base64FromBuffer, readJsonFile, writeJsonFile } from './utils/index.js';
 import { log } from './log.js';
 import { handleItem, itemsNotHyperized } from './items.js';
-import { KeyedBlobs } from './blobs.js';
 import { swarmInit } from './swarm.js';
 import { Peer } from './peer.js';
 import { WRITER_PEER_KIND } from './const.js';
@@ -129,14 +127,19 @@ export class Writer extends Peer {
   }
 
   async addNewItems (newItems) {
-    const feedBatcher = this.bTrees.feed.batch();
-
     log.info(`# new items = [${newItems.length}]`);
     for (const { key, rssItem } of newItems) {
       const handled = await handleItem(rssItem, { keyedBlobs: this.keyedBlobs });
-      await feedBatcher.put(key, JSON.stringify(handled));
+      await this.bTrees.feed.putOrderdItem(key, JSON.stringify(handled));
     }
-    await Promise.all([feedBatcher.flush()]);
+  }
+
+  // TODO finish this. Make it update all metadata
+  async updateMetadata () {
+    const key = 'title';
+    const value = this.parsedRssFeed[key];
+    console.log(value);
+    await this.bTrees.feed.maybeUpdateMetadata(key, JSON.stringify(this.parsedRssFeed[key]));
   }
 
   async updateFeed () {
