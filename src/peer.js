@@ -35,7 +35,7 @@ export class Peer {
   }
 
   async getFeed () {
-    return await takeAll(this.bTrees.feed.getUnorderedFeedStream());
+    return await takeAll(this.bTrees.feed.getFeedStream());
   }
 
   async close () {
