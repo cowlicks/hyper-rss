@@ -53,6 +53,10 @@ export class Peer {
     ]);
   }
 
+  async getMetadata () {
+    return await this.bTrees.feed.getMetadata();
+  }
+
   async getFeed () {
     return await takeAll(this.bTrees.feed.getFeedStream());
   }
