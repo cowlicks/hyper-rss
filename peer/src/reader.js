@@ -10,8 +10,8 @@ const READER_STORAGE = './reader-storage';
 
 export class Reader extends Peer {
   constructor (discoveryKeyString) {
-    log.info(`Creating Reader for discovery key = [${discoveryKeyString}]`);
     super(READER_PEER_KIND);
+    this.log(`Creating Reader for discovery key = [${discoveryKeyString}]`);
     Object.assign(
       this,
       {
@@ -21,15 +21,17 @@ export class Reader extends Peer {
   }
 
   async init ({ storageName = READER_STORAGE, ...opts } = {}) {
-    log.info(`Initializing Reader with storage at = [${storageName}]`);
+    this.log(`Initializing Reader with storage at = [${storageName}]`);
 
     const swarm = new Hyperswarm({ ...opts });
     goodbye(() => swarm.destroy());
     const store = new Corestore(storageName);
+    this.log(`Loaded store from = [${storageName}]`);
 
     swarm.on('connection', conn => store.replicate(conn));
 
     const keysCore = store.get({ key: this.discoveryKey, valueEncoding: 'json' });
+    this.log('waiting for keys to be ready');
     await keysCore.ready();
 
     const foundPeers = store.findingPeers();
