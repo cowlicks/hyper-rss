@@ -1,6 +1,8 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { Writer } from '../writer.js';
+import { withRssSubProcess } from '../tools/forkedFeed.js';
 
 const TMP_DIR_PREFIX = 'hrss-test-';
 
@@ -25,4 +27,25 @@ export function assert (a, b) {
   if (a != b) {
     throw new Error(`assertion failed lhs = [${a}] does not equal rhs = [${b}]`);
   }
+}
+
+export async function withTmpWriter (rssName, func) {
+  await withRssSubProcess(rssName, async (url) => {
+    await withTmpDir(async (storageDir) => {
+      const writer = new Writer(url, { storageName: storageDir });
+      await writer.init();
+      try {
+        await func(writer);
+      } finally {
+        await writer.close();
+      }
+    });
+  });
+}
+
+export async function withUpdatedWriter (rssName, testFunc) {
+  await withTmpWriter(rssName, async (writer) => {
+    await writer.updateFeed();
+    await testFunc(writer);
+  });
 }

@@ -1,4 +1,4 @@
-import { open, mkdir } from 'node:fs/promises';
+import { open, mkdir, stat } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { ENCODING } from '../const.js';
 
@@ -174,6 +174,18 @@ export async function readJsonFile (fileName) {
   const out = JSON.parse(await fh.readFile());
   await fh.close();
   return out;
+}
+export async function asyncThrows (fn) {
+  try {
+    await fn();
+  } catch (e) {
+    return true;
+  }
+  return false;
+}
+
+export async function fileExists (path) {
+  return !(await asyncThrows(stat(path)));
 }
 
 export function objectMap (o, func) {

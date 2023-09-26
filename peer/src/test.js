@@ -1,6 +1,6 @@
 import { KeyedBlobs } from './blobs.js';
 import { Reader } from './reader.js';
-import { withTmpDir } from './utils/tests.js';
+import { withTmpDir, withUpdatedWriter, withTmpWriter } from './utils/tests.js';
 import { join } from 'node:path';
 import { stat } from 'node:fs/promises';
 
@@ -10,8 +10,6 @@ import { getStore, getStoreAndCores, Writer } from './writer.js';
 import { retry } from './utils/async.js';
 import { withRssServer, download, mutateRss, jsonFromXml, xmlFromJson } from './tools/mirror.js';
 import { CHAPO, TEST_URLS, XKCD } from './const.js';
-
-import { withRssSubProcess } from './tools/forkedFeed.js';
 
 // does orig str equal dbl parsed?
 test('Test parse RSS feed and turn it back into the same XML', async t => {
@@ -56,25 +54,6 @@ test('test new Writer saves config and loading from it does not change it', asyn
   });
 });
 
-async function withTmpWriter (url, func) {
-  await withTmpDir(async (storageDir) => {
-    const writer = new Writer(url, { storageName: storageDir });
-    await writer.init();
-    try {
-      await func(writer);
-    } finally {
-      await writer.close();
-    }
-  });
-}
-
-async function withUpdatedWriter (url, testFunc) {
-  await withTmpWriter(url, async (writer) => {
-    await writer.updateFeed();
-    await testFunc(writer);
-  });
-}
-
 async function withReader (discoveryKey, testFunc) {
   await withTmpDir(async (storageName) => {
     const reader = new Reader(discoveryKey);
@@ -93,15 +72,13 @@ test('Smoke test read write XKCD',
     t.timeout(1e3 * 100);
     const nBlobs = 4,
       nFeedItems = 4;
-    await withRssSubProcess(XKCD, async (url) => {
-      await withUpdatedWriter(url, async (writer) => {
-        t.is((await writer.getFeed()).length, nFeedItems);
-        t.is((await writer.keyedBlobs.getKeys()).length, nBlobs);
-        await withReader(writer.discoveryKeyString(), async (reader) => {
-          t.is((await reader.getFeed()).length, nFeedItems);
-          t.is((await reader.keyedBlobs.getKeys()).length, nBlobs);
-          t.pass();
-        });
+    await withUpdatedWriter(XKCD, async (writer) => {
+      t.is((await writer.getFeed()).length, nFeedItems);
+      t.is((await writer.keyedBlobs.getKeys()).length, nBlobs);
+      await withReader(writer.discoveryKeyString(), async (reader) => {
+        t.is((await reader.getFeed()).length, nFeedItems);
+        t.is((await reader.keyedBlobs.getKeys()).length, nBlobs);
+        t.pass();
       });
     });
   }
@@ -112,15 +89,13 @@ test('Smoke test read write CHAPO',
     t.timeout(1e3 * 100);
     const nBlobs = 5,
       nFeedItems = 5;
-    await withRssSubProcess(CHAPO, async (url) => {
-      await withUpdatedWriter(url, async (writer) => {
-        t.is((await writer.getFeed()).length, nFeedItems);
-        t.is((await writer.keyedBlobs.getKeys()).length, nBlobs);
-        await withReader(writer.discoveryKeyString(), async (reader) => {
-          t.is((await reader.getFeed()).length, nFeedItems);
-          t.is((await reader.keyedBlobs.getKeys()).length, nBlobs);
-          t.pass();
-        });
+    await withUpdatedWriter(CHAPO, async (writer) => {
+      t.is((await writer.getFeed()).length, nFeedItems);
+      t.is((await writer.keyedBlobs.getKeys()).length, nBlobs);
+      await withReader(writer.discoveryKeyString(), async (reader) => {
+        t.is((await reader.getFeed()).length, nFeedItems);
+        t.is((await reader.keyedBlobs.getKeys()).length, nBlobs);
+        t.pass();
       });
     });
   }
@@ -160,16 +135,14 @@ test('KeyedBlobs.fromStore', async (t) => {
 test('Writer get feed title',
   async (t) => {
     t.timeout(1e3 * 100);
-    await withRssSubProcess(CHAPO, async (url) => {
-      await withTmpWriter(url, async (writer) => {
-        const title = 'Chapo Trap House';
-        const description = 'Podcast by Chapo Trap House';
+    await withTmpWriter(CHAPO, async (writer) => {
+      const title = 'Chapo Trap House';
+      const description = 'Podcast by Chapo Trap House';
 
-        await writer.updateMetadata();
-        t.is(await writer.bTrees.feed.getMetadataValue('title'), title);
-        t.is(await writer.bTrees.feed.getMetadataValue('description'), description);
-        t.pass();
-      });
+      await writer.updateMetadata();
+      t.is(await writer.bTrees.feed.getMetadataValue('title'), title);
+      t.is(await writer.bTrees.feed.getMetadataValue('description'), description);
+      t.pass();
     });
   }
 );
