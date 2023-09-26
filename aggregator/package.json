@@ -1,12 +1,18 @@
 {
   "name": "aggregator",
+  "type": "module",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "test": "ava"
+  },
   "dependencies": {
-    "ava": "^5.3.1",
     "cross-env": "^7.0.3",
     "express": "^4.18.2",
     "peer": "1.0.0"
+  },
+  "devDependencies": {
+    "ava": "^5.3.1"
   }
 }
