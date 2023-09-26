@@ -185,7 +185,7 @@ export async function asyncThrows (fn) {
 }
 
 export async function fileExists (path) {
-  return !(await asyncThrows(stat(path)));
+  return !(await asyncThrows(() => stat(path)));
 }
 
 export function objectMap (o, func) {
