@@ -36,3 +36,5 @@ export const RSS_METADATA_FIELDS = [
   'pubDate',
   'lastBuildDate'
 ];
+
+export const ENCODING = 'base64url';

@@ -1,5 +1,6 @@
 import { open, mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import { ENCODING } from '../const.js';
 
 export * from './net.js';
 
@@ -40,12 +41,12 @@ export const getOnExit = () => {
   return _onExit;
 };
 
-export function base64FromBuffer (buffer) {
-  return Buffer.from(buffer).toString('base64');
+export function encodedStrFromBuffer (buffer) {
+  return Buffer.from(buffer).toString(ENCODING);
 }
 
-export function bufferFromBase64 (base64Str) {
-  return Buffer.from(base64Str, 'base64');
+export function bufferFromEncodedStr (encodedStr) {
+  return Buffer.from(encodedStr, ENCODING);
 }
 
 // Eventualy we should move this async stuff it's own library

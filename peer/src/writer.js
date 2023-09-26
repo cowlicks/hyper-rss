@@ -2,7 +2,7 @@
 import Parser from 'rss-parser';
 import Corestore from 'corestore';
 
-import { base64FromBuffer, readJsonFile, writeJsonFile } from './utils/index.js';
+import { encodedStrFromBuffer, readJsonFile, writeJsonFile } from './utils/index.js';
 import { log } from './log.js';
 import { handleItem, itemsNotHyperized } from './items.js';
 import { swarmInit } from './swarm.js';
@@ -102,9 +102,9 @@ export class Writer extends Peer {
     if (keys.length === 0) {
       await keys.append({
         keys: {
-          feed: base64FromBuffer(feed.key),
-          blobKeys: base64FromBuffer(blobKeys.key),
-          blobs: base64FromBuffer(blobs.key)
+          feed: encodedStrFromBuffer(feed.key),
+          blobKeys: encodedStrFromBuffer(blobKeys.key),
+          blobs: encodedStrFromBuffer(blobs.key)
         }
       });
     }
@@ -153,7 +153,7 @@ export class Writer extends Peer {
   }
 
   discoveryKeyString () {
-    return base64FromBuffer(this.cores.keys.key);
+    return encodedStrFromBuffer(this.cores.keys.key);
   }
 
   async maybeSaveConfig (...args) {

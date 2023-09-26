@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio';
 import { downloadToBuffer } from './utils/index.js';
 import { createHash } from 'node:crypto';
+import { ENCODING } from './const.js';
 
 const defaultRssItemHasher = ({ guid }) => guid;
 
@@ -18,7 +19,7 @@ export async function itemsNotHyperized (rssFeed, hyperbeeItemsDb, { hasher = de
 
 export async function downloadAndHash (url, {
   hashAlgorithm = 'sha256',
-  digestEncoding = 'base64'
+  digestEncoding = ENCODING
 }) {
   const buffer = await downloadToBuffer(url);
   const d = createHash(hashAlgorithm).update(buffer).digest();

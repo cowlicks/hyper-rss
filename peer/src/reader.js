@@ -2,7 +2,7 @@ import Corestore from 'corestore';
 import goodbye from 'graceful-goodbye';
 import Hyperswarm from 'hyperswarm';
 import { log } from './log.js';
-import { bufferFromBase64 } from './utils/index.js';
+import { bufferFromEncodedStr, encodedStrFromBuffer } from './utils/index.js';
 import { Peer } from './peer.js';
 import { READER_PEER_KIND } from './const.js';
 
@@ -16,7 +16,7 @@ export class Reader extends Peer {
       this,
       {
         discoveryKeyString,
-        discoveryKey: bufferFromBase64(discoveryKeyString)
+        discoveryKey: bufferFromEncodedStr(discoveryKeyString)
       });
   }
 
@@ -47,9 +47,9 @@ export class Reader extends Peer {
       keys
     } = await keysCore.get(0);
 
-    const feedCore = store.get({ key: bufferFromBase64(keys.feed) });
-    const blobKeysCore = store.get({ key: bufferFromBase64(keys.blobKeys) });
-    const blobsCore = store.get({ key: bufferFromBase64(keys.blobs) });
+    const feedCore = store.get({ key: bufferFromEncodedStr(keys.feed) });
+    const blobKeysCore = store.get({ key: bufferFromEncodedStr(keys.blobKeys) });
+    const blobsCore = store.get({ key: bufferFromEncodedStr(keys.blobs) });
 
     Object.assign(
       this,
