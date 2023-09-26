@@ -43,6 +43,16 @@ export class Peer {
     };
   }
 
+  update ({ wait = true, ...options } = {}) {
+    const opts = { wait, ...options };
+    return Promise.all([
+      this.cores.keys.update(opts),
+      this.cores.feed.update(opts),
+      this.cores.blobKeys.update(opts),
+      this.cores.blobs.update(opts)
+    ]);
+  }
+
   async getFeed () {
     return await takeAll(this.bTrees.feed.getFeedStream());
   }
