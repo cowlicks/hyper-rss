@@ -149,6 +149,7 @@ export class Writer extends Peer {
   async updateFeed () {
     const missing = await this.getMissing();
     await this.addNewItems(missing);
+    await this.updateMetadata();
     return missing;
   }
 
