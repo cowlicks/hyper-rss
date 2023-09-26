@@ -222,15 +222,22 @@ export function filterObj (filterFields, o) {
   return objectMap(o, arr => arr.filter(([k, _v]) => !filters.has(k)));
 }
 
-export async function withContext ({ enter = async () => {}, exit = async () => {}, func = async () => {} }) {
-  const ctx = await enter();
+// Like python's context managers. We wrap the provided `func` with `enter` and
+// `exit` calls.
+//
+// NB we only access enter/func/exit at call time to allow them
+// to be added `obj` dynamically in then enter/func functions.
+export async function withContext (
+  obj
+) {
+  const ctx = await obj.enter();
   try {
-    const result = await func(ctx);
-    await exit({ ctx, result });
+    const result = await obj.func(ctx);
+    await obj.exit({ ctx, result });
     return result;
   } catch (error) {
     console.log(error);
-    await exit({ ctx, error });
+    await obj.exit({ ctx, error });
     throw error;
   }
 }
