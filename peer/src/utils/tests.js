@@ -6,8 +6,9 @@ const TMP_DIR_PREFIX = 'hrss-test-';
 
 export async function withTmpDir (func, prefix = TMP_DIR_PREFIX) {
   let tmpd;
+  const p = prefix.call ? prefix(TMP_DIR_PREFIX) : prefix;
   try {
-    tmpd = await mkdtemp(join(tmpdir(), prefix));
+    tmpd = await mkdtemp(join(tmpdir(), p));
     await func(tmpd);
   } catch (err) {
     console.error(err);

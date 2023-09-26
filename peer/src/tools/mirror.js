@@ -234,5 +234,6 @@ ${url.href}
 
     // close the server
     await (new Promise(resolve => server.close(resolve)));
-  });
+  },
+  (pref) => `${pref}tmp-rss-feed`);
 }
