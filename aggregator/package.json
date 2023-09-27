@@ -5,6 +5,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
+    "lint": "eslint src/*",
     "test": "ava"
   },
   "dependencies": {
@@ -13,6 +14,7 @@
     "peer": "1.0.0"
   },
   "devDependencies": {
+    "dev": "1.0.0",
     "ava": "^5.3.1"
   }
 }
