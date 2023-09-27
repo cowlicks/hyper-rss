@@ -1,8 +1,8 @@
 {
-  "name": "aggregator",
+  "name": "@hrss/aggregator",
   "type": "module",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/index.js",
   "license": "MIT",
   "scripts": {
     "lint": "eslint src/*",
@@ -11,10 +11,10 @@
   "dependencies": {
     "cross-env": "^7.0.3",
     "express": "^4.18.2",
-    "peer": "1.0.0"
+    "@hrss/peer": "1.0.0"
   },
   "devDependencies": {
-    "dev": "1.0.0",
+    "@hrss/dev": "1.0.0",
     "ava": "^5.3.1"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "dev",
+  "name": "@hrss/dev",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",

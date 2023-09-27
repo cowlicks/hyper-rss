@@ -1,5 +1,5 @@
 {
-  "name": "hyper-rss",
+  "name": "@hrss/peer",
   "type": "module",
   "version": "1.0.0",
   "main": "src/index.js",
@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "ava": "^5.3.1",
-    "dev": "1.0.0",
+    "@hrss/dev": "1.0.0",
     "express": "^4.18.2",
     "glob": "^10.3.4",
     "xml2js": "^0.6.2"
