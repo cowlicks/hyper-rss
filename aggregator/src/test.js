@@ -4,6 +4,8 @@ import { Aggregator } from './index.js';
 import { withTmpDir, withUpdatedWriter } from '../../peer/src/utils/tests.js';
 import { CHAPO, XKCD } from '../../peer/src/const.js';
 import { fileExists, withContext } from '../../peer/src/utils/index.js';
+import { listDirectories } from './utils.js';
+import { wait } from '../../peer/src/utils/async.js';
 
 const withAggregator = async (func) => {
   const obj = {};
@@ -19,19 +21,20 @@ const withAggregator = async (func) => {
   };
   return withContext(obj);
 };
-test('Construct Aggregator', async (t) => {
+
+test('Aggregator', async (t) => {
   await withAggregator(async ({ aggregator, tmpd }) => {
     await withUpdatedWriter(CHAPO, async (chapoWriter) => {
       const chapoKey = chapoWriter.discoveryKeyString();
       await aggregator.addReader(chapoKey);
       t.assert(await fileExists(join(tmpd, chapoKey)));
-      // TODO test this
-      // const feed = await aggregator.getReaderFeed(chapoKey);
-      // TODO test this
-      const metas = await aggregator.getFeedsMetadata();
+      t.is((await aggregator.getFeedsMetadata()).length, 1);
 
-      // TODO test multi feeds
       await withUpdatedWriter(XKCD, async (xkcdWriter) => {
+        const xkcdKey = xkcdWriter.discoveryKeyString();
+        await aggregator.addReader(xkcdKey);
+        t.assert(await fileExists(join(tmpd, xkcdKey)));
+        t.is((await aggregator.getFeedsMetadata()).length, 2);
       });
     });
   });

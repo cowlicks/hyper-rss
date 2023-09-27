@@ -5,8 +5,10 @@ import { mkdir } from 'node:fs/promises';
 //  addReader(discoveryKeyString, { storageDir })
 //  /* gets a list of items from  a reader */
 //  getReaderFeed(dk, { limit, ...opts })
+//  /* get a metadata from a reader */
+//  getReaderMetadata(dk, opts)
 //  /* get a binary blob from a reader */
-//  getBlob(dk, url, opts)
+//  getReaderBlob(dk, url, opts)
 //  /* tell the reader to update */
 //  updateReader(opts)
 //  /* stops a reader */
@@ -67,7 +69,11 @@ export class Aggregator {
     return this._getReader(discoveryKeyString).getFeed();
   }
 
-  getBlob (discoveryKeyString, url) {
+  getReaderMetadata (discoveryKeyString) {
+    return this._getReader(discoveryKeyString).getMetadata();
+  }
+
+  getReaderBlob (discoveryKeyString, url) {
     return this._getReader(discoveryKeyString).get(url);
   }
 
