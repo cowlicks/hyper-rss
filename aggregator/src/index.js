@@ -46,8 +46,7 @@ export class Aggregator {
     }
 
     const readerDirs = await listDirectories(this.storageName);
-    // TODO
-    // iterate over reader dirs and intialize them
+    await Promise.all(readerDirs.map(r => this.addReader(r)));
   }
 
   _getReader (discoveryKeyString) {
