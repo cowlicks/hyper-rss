@@ -3,10 +3,8 @@ import { cp } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Aggregator } from './index.js';
 import { withTmpDir, withUpdatedWriter } from '../../peer/src/utils/tests.js';
-import { CHAPO, ROOT_DIR, XKCD } from '../../peer/src/const.js';
+import { CHAPO, XKCD } from '../../peer/src/const.js';
 import { fileExists, withContext } from '../../peer/src/utils/index.js';
-import { listDirectories } from './utils.js';
-import { wait } from '../../peer/src/utils/async.js';
 import { AGGREGATOR_TEST_DATA } from './const.js';
 
 const withAggregator = async (func) => {

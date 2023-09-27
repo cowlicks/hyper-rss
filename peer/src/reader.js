@@ -1,8 +1,7 @@
 import Corestore from 'corestore';
 import goodbye from 'graceful-goodbye';
 import Hyperswarm from 'hyperswarm';
-import { log } from './log.js';
-import { bufferFromEncodedStr, encodedStrFromBuffer } from './utils/index.js';
+import { bufferFromEncodedStr } from './utils/index.js';
 import { Peer } from './peer.js';
 import { READER_PEER_KIND } from './const.js';
 
