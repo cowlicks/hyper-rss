@@ -20,7 +20,15 @@
 
 # Goals
 
-* Writer defaults should provide a consistent level of protection against identifying who created the stream. Just that all URL's which we download data from should removed. One way to do this, the writer can keep a secret, along with it's URL. This secret can be used as a salt to hash the URL's with. Then these hashed URL's can be used to identify data. Providing total anonymity is beyond our scope. However we sholud allow for writers to be configured manually to mutate/randomize/tweak incoming data to prevent fingerprinting.
+* Be able to easily create a hrss feed from a regular rss/atom feed.
+* Writer defaults should provide a consistent level of protection against
+  identifying who created the stream. Just that all URL's which we download
+  data from should removed. One way to do this, the writer can keep a secret,
+  along with it's URL. This secret can be used as a salt to hash the URL's
+  with. Then these hashed URL's can be used to identify data. Providing total
+  anonymity is beyond our scope. However we sholud allow for writers to be
+  configured manually to mutate/randomize/tweak incoming data to prevent
+  fingerprinting.
 
 ## Internal Goals
 
