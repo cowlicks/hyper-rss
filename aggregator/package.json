@@ -9,9 +9,10 @@
     "test": "ava"
   },
   "dependencies": {
+    "@hrss/peer": "1.0.0",
     "cross-env": "^7.0.3",
     "express": "^4.18.2",
-    "@hrss/peer": "1.0.0"
+    "ws": "^8.14.2"
   },
   "devDependencies": {
     "@hrss/dev": "1.0.0",
