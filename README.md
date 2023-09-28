@@ -1,26 +1,7 @@
-# Tasks
-
-* Use logs instead of console.log
-* have a RSS representation of hrss feed. This could be useful for compatability with regular rss readers.
-* Test blob and keyed blob stuff
-
-* Running http server and making requests to it in the same process hangs. I
-  need to run the server in a suprocess. See "forkedFeed"
-* For creating local RSS feeds I need a way to write out the rss-parser json
-  output back to rss feeds. This can be a hack bc it is just for testing. for actual output in hrss it will be JSON like
-
-* I want to be able to mirror an existing RSS feed locally for testing. The
-  mirroring stuff can go into src/tools/.
-
-* Create a simple e2e test between a reader and writer.
-
-* write tests:
-  - test writing
-  - test reading from writer
-
 # Goals
 
 * Be able to easily create a hrss feed from a regular rss/atom feed.
+* Pulling updates into the hrss feed from a regular rss/atom feed should be easy.
 * Writer defaults should provide a consistent level of protection against
   identifying who created the stream. Just that all URL's which we download
   data from should removed. One way to do this, the writer can keep a secret,
@@ -60,7 +41,7 @@ Reader *can* piggy back off this config file to ease local testing, for this rea
 
 ### Different builds
 
-We should be able to split this into two builds, Writer-reader and reader. Where reader is smaller because it does not need the stuff to pull parse wriet the hrss
+We should be able to split this into two builds, Writer-reader and reader. Where reader is smaller because it does not need the stuff to pull parse write the hrss
 
 ## Entry Points
 
