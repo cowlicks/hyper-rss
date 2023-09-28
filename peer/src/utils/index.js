@@ -11,7 +11,7 @@ export const randName = (len = 6) => {
 };
 
 // For fully featured listener see privacypossum src/js/utils:listenerMixin
-class EventListener {
+export class EventListener {
   constructor () {
     this.funcs = new Set();
   }
