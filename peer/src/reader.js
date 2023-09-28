@@ -35,9 +35,10 @@ export class Reader extends Peer {
 
     const foundPeers = store.findingPeers();
     swarm.join(keysCore.discoveryKey);
-    await swarm.flush();
-    foundPeers();
-    await keysCore.update();
+    swarm.flush().then(() => foundPeers());
+    // waits till we find first peer or flush is complete
+    await keysCore.get(0);
+    await keysCore.update({ wait: true });
 
     if (keysCore.length === 0) {
       console.error('Could not connect to the writer peer');
