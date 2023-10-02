@@ -1,18 +1,20 @@
 module.exports = {
   env: {
     es2021: true,
-    browser: true,
+    browser: true
   },
   extends: [
-    'airbnb-base',
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended'
   ],
+
   parserOptions: {
     parser: '@typescript-eslint/parser',
     ecmaVersion: 12,
-    sourceType: 'module',
+    sourceType: 'module'
   },
   plugins: [
-    '@typescript-eslint',
+    '@typescript-eslint'
   ],
   rules: {
     'import/no-extraneous-dependencies': ['error', { packageDir: __dirname }],
@@ -20,7 +22,7 @@ module.exports = {
     'import/prefer-default-export': ['off'],
     'no-param-reassign': ['error', { props: false }],
     'no-return-assign': ['error', 'except-parens'],
-    'no-unused-vars': ['error', { args: 'after-used' }],
+    'no-unused-vars': 'off',
     'no-restricted-syntax': ['off', ['ForOfStatement']],
     'max-len': ['error', { code: 120 }],
     'no-plusplus': ['error', { allowForLoopAfterthoughts: true }],
@@ -30,26 +32,32 @@ module.exports = {
       'error',
       'ignorePackages', {
         js: 'never',
-        ts: 'never',
-      },
+        ts: 'never'
+      }
     ],
     '@typescript-eslint/no-unused-vars': [
       'error',
       {
         argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_',
+        varsIgnorePattern: '^_'
+      }
+    ],
+    '@typescript-eslint/no-this-alias': [
+      'error',
+      { 
+        allowedNames: ["self"]
       },
     ],
     // I like to group vars semantically
     'one-var-declaration-per-line': ['off'],
-    'one-var': ['off'],
+    'one-var': ['off']
   },
   settings: {
     'import/resolver': {
       typescript: {},
       node: {
-        extensions: ['.js', '.ts'],
-      },
-    },
-  },
+        extensions: ['.js', '.ts']
+      }
+    }
+  }
 };

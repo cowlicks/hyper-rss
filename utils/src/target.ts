@@ -1,35 +1,38 @@
 export const noop = () => {};
 export const passThrough = <T>(x: T): T => x;
 
+type DispatchFunction = (x?: unknown) => unknown
+type BeforDispatchFunction = (x?: unknown, cancel?: () => void) => unknown
+
 export class Target {
-  funcs: Set<Function> = new Set();
+  funcs: Set<DispatchFunction> = new Set();
 
-  onDispatch: Function;
+  onDispatch: DispatchFunction;
 
-  beforeDispatch: Function;
+  beforeDispatch: BeforDispatchFunction;
 
-  afterDispatch: Function;
+  afterDispatch: DispatchFunction;
 
-  constructor({
+  constructor ({
     onDispatch = noop,
     beforeDispatch = passThrough,
-    afterDispatch = passThrough,
+    afterDispatch = passThrough
   }: {
-    onDispatch?: Function,
-    beforeDispatch?: Function,
-    afterDispatch?: Function,
+    onDispatch?: DispatchFunction,
+    beforeDispatch?: BeforDispatchFunction,
+    afterDispatch?: DispatchFunction,
   } = {}) {
     this.beforeDispatch = beforeDispatch;
     this.afterDispatch = afterDispatch;
     this.onDispatch = onDispatch;
   }
 
-  addListener(f: Function) {
+  addListener (f: DispatchFunction) {
     this.funcs.add(f);
     return () => this.removeListener(f);
   }
 
-  addListenerOnce(f) {
+  addListenerOnce (f) {
     const removeMe = (...x) => {
       this.removeListener(removeMe);
       return f(...x);
@@ -37,11 +40,11 @@ export class Target {
     return this.addListener(removeMe);
   }
 
-  removeListener(f: Function) {
+  removeListener (f: DispatchFunction) {
     return this.funcs.delete(f);
   }
 
-  async dispatch(e: unknown) {
+  async dispatch (e: unknown) {
     let cancel = false;
     const x = this.beforeDispatch(e, () => (cancel = true));
     if (cancel) return;
@@ -51,48 +54,48 @@ export class Target {
       Promise.all(
         [
           this.onDispatch,
-          ...this.funcs,
-        ].map((f) => f(x)),
-      ),
+          ...this.funcs
+        ].map((f) => f(x))
+      )
     );
   }
 }
 
 interface NamesToListeners {
-  [k: string]: Function;
+  [k: string]: DispatchFunction;
 }
 export class NamedTarget {
-  namedListeners: Map<string, Target>
+  namedListeners: Map<string, Target>;
 
-  constructor() {
+  constructor () {
     this.namedListeners = new Map();
   }
 
-  on(name: string, listener: Function) {
+  on (name: string, listener: DispatchFunction) {
     this.register({ [name]: listener });
   }
 
-  register(nameToListenerObject: NamesToListeners) {
+  register (nameToListenerObject: NamesToListeners) {
     Object.entries(nameToListenerObject).forEach(([name, listener]) => {
       this.addListener(name, listener);
     });
   }
 
-  addListener(name, listener) {
+  addListener (name, listener) {
     if (!this.namedListeners.has(name)) {
       this.namedListeners.set(name, new Target());
     }
     return this.namedListeners.get(name).addListener(listener);
   }
 
-  addListenerOnce(name, listener) {
+  addListenerOnce (name, listener) {
     if (!this.namedListeners.has(name)) {
       this.namedListeners.set(name, new Target());
     }
     return this.namedListeners.get(name).addListenerOnce(listener);
   }
 
-  dispatch(name: string, e?: unknown) {
+  dispatch (name: string, e?: unknown) {
     return this.namedListeners.get(name)?.dispatch(e);
   }
 }

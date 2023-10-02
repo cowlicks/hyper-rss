@@ -2,14 +2,14 @@ export interface IterableKeyedObj<T> {
   [key:string]: T[];
 }
 
-export function* range(n: number): Iterable<number> {
+export function * range (n: number): Iterable<number> {
   for (let i = 0; i < n; i++) {
     yield i;
   }
 }
 
 // like python enumerate
-export function* enumerate<T>(gen: Iterable<T>): Iterable<[number, T]> {
+export function * enumerate<T> (gen: Iterable<T>): Iterable<[number, T]> {
   let count = 0;
   for (const x of gen) {
     yield [count, x];
@@ -17,7 +17,7 @@ export function* enumerate<T>(gen: Iterable<T>): Iterable<[number, T]> {
   }
 }
 
-export function* product(...gens) {
+export function * product (...gens) {
   for (const a of (gens.shift() ?? [])) {
     if (!gens.length) {
       yield [a];
@@ -27,10 +27,10 @@ export function* product(...gens) {
       }
     }
   }
-  yield* [];
+  yield * [];
 }
 
-export function* iterMap(iterable, callback) {
+export function * iterMap (iterable, callback) {
   for (const x of iterable) {
     yield callback(x);
   }
@@ -40,12 +40,12 @@ export function* iterMap(iterable, callback) {
 // converts iterables to iterators
 // has no effect on iterators
 // useful for handleling something that could be a array, or, map, but we want a .next() method
-function* iter(it) {
-  yield* it;
+function * iter (it) {
+  yield * it;
 }
 
 // like python's builtin zip
-export function* zip(...args) {
+export function * zip (...args) {
   const gens = args.map(iter);
   while (true) {
     const out = [];
@@ -58,7 +58,7 @@ export function* zip(...args) {
   }
 }
 
-export function* zipLongest(...args) {
+export function * zipLongest (...args) {
   const gens = args.map(iter);
   const nArgs = args.length;
   while (true) {
@@ -79,7 +79,7 @@ export function* zipLongest(...args) {
   }
 }
 
-export function* chain<T>(...args: Iterable<T>[]): Iterable<T> {
+export function * chain<T> (...args: Iterable<T>[]): Iterable<T> {
   for (const iterable of args) {
     for (const b of iterable) {
       yield b;
@@ -87,7 +87,7 @@ export function* chain<T>(...args: Iterable<T>[]): Iterable<T> {
   }
 }
 
-export function* take<T>(n: number, iterable: Iterable<T>): Generator<T[]> {
+export function * take<T> (n: number, iterable: Iterable<T>): Generator<T[]> {
   const out = [];
   for (const x of iterable) {
     out.push(x);

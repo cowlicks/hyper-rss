@@ -20,20 +20,20 @@ class OnReadyStateChange extends Target {
 
   readyStateGetter: ReadyStateGetter;
 
-  constructor(readyStateGetter: ReadyStateGetter) {
+  constructor (readyStateGetter: ReadyStateGetter) {
     super();
     this.state = null;
     this.readyStateGetter = readyStateGetter;
   }
 
-  attach(...targets: Target[]) {
+  attach (...targets: Target[]) {
     const listener = this.maybeChange.bind(this);
     for (const t of targets) {
       t.addListener(listener);
     }
   }
 
-  maybeChange() {
+  maybeChange () {
     const state = this.readyStateGetter();
     if (this.state !== state) {
       this.dispatch(this.state = state);
@@ -41,7 +41,7 @@ class OnReadyStateChange extends Target {
   }
 }
 
-function isConnected(ws: WebSocket) {
+function isConnected (ws: WebSocket) {
   if (ws) return ws.readyState === 1;
   return false;
 }
@@ -76,7 +76,7 @@ export class BaseWsConnection {
 
   onError: Target;
 
-  constructor(options: WsOptions = {}) {
+  constructor (options: WsOptions = {}) {
     this.options = options;
     this.onOpen = new Target();
     this.onClose = new Target();
@@ -93,55 +93,55 @@ export class BaseWsConnection {
     ${e}
   `);
         }
-      },
+      }
     });
     this.onError = new Target();
   }
 
-  get readyState(): ReadyState {
+  get readyState (): ReadyState {
     return this._ws?.readyState as ReadyState ?? 3;
   }
 
-  get url() {
+  get url () {
     return this._ws?.url ?? this.options?.ws?.url ?? this.options?.url;
   }
 
-  changeUrl(url: string) {
+  changeUrl (url: string) {
     return this._reallyConnect({ url });
   }
 
-  send(msg) {
+  send (msg) {
     this.connect();
     this._ws.send(JSON.stringify(msg));
   }
 
-  isConnected(ws = this._ws) {
+  isConnected (ws = this._ws) {
     return isConnected(ws);
   }
 
-  connect(options = {}) {
+  connect (options = {}) {
     if (this.isConnected() || this.readyState === 0) return Promise.resolve();
     return this._reallyConnect(options);
   }
 
   // TODO add timeout
-  _reallyConnect(options) {
+  _reallyConnect (options) {
     this.close();
-    let resolve, reject;
-    const out = new Promise((resolve2, reject2) => {
-      resolve = resolve2;
-      reject = reject2;
-      this.onOpen.addListener(resolve);
-      this.onError.addListener(reject);
+    let resolveHolder, rejectHolder;
+    const out = new Promise((resolve, reject) => {
+      resolveHolder = resolve;
+      rejectHolder = reject;
+      this.onOpen.addListener(resolveHolder);
+      this.onError.addListener(rejectHolder);
     }).finally(() => {
-      this.onOpen.removeListener(resolve);
-      this.onError.removeListener(reject);
+      this.onOpen.removeListener(resolveHolder);
+      this.onError.removeListener(rejectHolder);
     });
     this.options = { ...this.options, ...options };
 
     this._ws = optionsToWebsocket(this.options);
     if (isConnected(this._ws)) {
-      resolve();
+      resolveHolder();
     }
 
     this.options.url = this._ws.url;
@@ -149,12 +149,12 @@ export class BaseWsConnection {
     return out;
   }
 
-  close() {
+  close () {
     this?._ws?.close();
     delete this._ws;
   }
 
-  initializeWebsocket(ws: WebSocket & WebSocketState) {
+  initializeWebsocket (ws: WebSocket & WebSocketState) {
     if (ws._alreadyInitialized) return;
     ws._alreadyInitialized = true;
 
@@ -174,7 +174,7 @@ export class BaseWsConnection {
 export class WsConnection extends BaseWsConnection {
   firstIsReady = Deferred();
 
-  _isReady: IDeferred<any>;
+  _isReady: IDeferred<unknown>;
 
   onReadyStateChange: OnReadyStateChange;
 
@@ -182,11 +182,11 @@ export class WsConnection extends BaseWsConnection {
 
   reconnectTimeId = null;
 
-  static fromUrl(url: string) {
+  static fromUrl (url: string) {
     return new this({ url });
   }
 
-  constructor(options: WsOptions = {}) {
+  constructor (options: WsOptions = {}) {
     super(options);
 
     const readyStateGetter = () => this.readyState;
@@ -219,27 +219,27 @@ export class WsConnection extends BaseWsConnection {
     });
   }
 
-  shutDown() {
+  shutDown () {
     this.shutDownCalled = true;
     this.close();
   }
 
-  get isReady() {
+  get isReady () {
     if (this?._ws?.readyState === 1) this._isReady.resolve();
     return this._isReady;
   }
 
-  set isReady(x) {
+  set isReady (x) {
     this._isReady = x;
   }
 
-  async send(msg: any) {
+  async send (msg: unknown) {
     await this.connect();
     await this.isReady;
     return super.send(msg);
   }
 
-  enablePingPong(keepAliveTime = config.KEEPALIVE_MS) {
+  enablePingPong (keepAliveTime = config.KEEPALIVE_MS) {
     let isAlive = true;
     let start = Date.now();
     let tid;

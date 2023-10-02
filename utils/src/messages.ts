@@ -22,11 +22,9 @@ export interface Notification {
 
 export type RpcCall = Request | Notification;
 
-function isRequest(m: RpcCall): m is Request {
-  return (m as Request).id !== undefined
+function isRequest (m: RpcCall): m is Request {
+  return (m as Request).id !== undefined;
 }
-
-type ValueOf<T> = T[keyof T];
 
 export interface OkResponse {
     id: string;
@@ -44,37 +42,36 @@ export interface ErrResponse {
 }
 
 export type RpcResponse = OkResponse | ErrResponse
+export type RpcMessage = RpcCall | RpcResponse
+type RpcSender = (msg: RpcCall) => Promise<void>;
 
-export function isRpcResponse(m: RpcMessage): m is RpcResponse {
-  return ((m as RpcResponse).id !== undefined) && ((m as RpcCall).method === undefined)
+export function isRpcResponse (m: RpcMessage): m is RpcResponse {
+  return ((m as RpcResponse).id !== undefined) && ((m as RpcCall).method === undefined);
 }
 
-export type RpcMessage = RpcCall | RpcResponse
-
-type RpcSender = (msg: RpcCall) => Promise<void>;
 export class MessageHandler extends Target {
-  messageIds: Map<string, [(value: any)=>void, (reason: any)=>void]> = new Map();
+  messageIds: Map<string, [(value: unknown)=>void, (reason: unknown)=>void]> = new Map();
 
-  sender: (msg: any) => void;
+  sender: (msg: unknown) => void;
 
-  static fromUrl(url: string) {
+  static fromUrl (url: string) {
     return this.fromConnection(new WsConnection({ url }));
   }
 
-  static fromConnection(wsCon: WsConnection) {
+  static fromConnection (wsCon: WsConnection) {
     return new this(wsCon.send.bind(wsCon), wsCon.onMessage);
   }
 
-  constructor(
+  constructor (
     sender: RpcSender,
-    onMessage = new Target(),
+    onMessage = new Target()
   ) {
     super();
     this.sender = sender;
     onMessage.addListener(this.receive.bind(this));
   }
 
-  async send(msg: RpcCall) {
+  async send (msg: RpcCall) {
     const out = Deferred();
     if (isRequest(msg)) {
       this.messageIds.set(msg.id, [out.resolve, out.reject]);
@@ -86,7 +83,7 @@ export class MessageHandler extends Target {
     return out;
   }
 
-  receive(msg: RpcMessage) {
+  receive (msg: RpcMessage) {
     if (isRpcResponse(msg) && this.messageIds.has(msg.id)) {
       this.messageIds.get(msg.id)[0](msg);
     }
@@ -95,46 +92,45 @@ export class MessageHandler extends Target {
 }
 
 export class WebClient extends MessageHandler {
-
   onEvent = new Target();
 
   onSendSetMessage = new Target();
 
-  static fromUrl(url: string): WebClient {
+  static fromUrl (url: string): WebClient {
     return new WebClient(new WsConnection({ url }));
   }
 
   wsConnection: WsConnection;
 
-  constructor(
-    wsCon: WsConnection,
+  constructor (
+    wsCon: WsConnection
   ) {
     super(wsCon.send.bind(wsCon), wsCon.onMessage);
     this.wsConnection = wsCon;
   }
 
-  close() {
+  close () {
     this.wsConnection.close();
   }
 
-  shutDown() {
+  shutDown () {
     this.wsConnection.shutDown();
   }
 
-  notify(method, params) {
+  notify (method, params) {
     return this.send({
       timestamp: moment().toISOString(),
       method,
-      ...(!isNullish(params) && { params }),
-    })
+      ...(!isNullish(params) && { params })
+    });
   }
 
-  request(method, params) {
+  request (method, params) {
     return this.send({
       id: uuidv4(),
       timestamp: moment().toISOString(),
       method,
-      ...(!isNullish(params) && { params }),
-    })
+      ...(!isNullish(params) && { params })
+    });
   }
 }

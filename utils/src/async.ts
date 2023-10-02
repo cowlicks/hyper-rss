@@ -2,24 +2,26 @@ import config from './config.js';
 
 export interface IDeferred<T> extends Promise<T> {
   resolve: (x?: T) => void;
-  reject: (x?: any) => void;
-  rejectAndCatch: (rejectionReason: any, catchFunc?: (x: any) => any) => void;
+  reject: (x?: unknown) => void;
+  rejectAndCatch: (rejectionReason: unknown, catchFunc?: (x: unknown) => unknown) => void;
 }
 
-export function Deferred(): IDeferred<any> {
+export function Deferred (): IDeferred<unknown> {
   const o = {};
   const p = new Promise((resolve, reject) => Object.assign(o, { resolve, reject }));
   const rejectAndCatch = (rejectionReason, catchFunc = () => {}) => {
-    (o as any).reject(rejectionReason);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    o.reject(rejectionReason);
     p.catch(catchFunc);
   };
-  return Object.assign(p, o, { rejectAndCatch }) as IDeferred<any>;
+  return Object.assign(p, o, { rejectAndCatch }) as IDeferred<unknown>;
 }
 
 export class TimeoutError extends Error {
   name = 'TimeoutError';
 
-  constructor(message = 'Something took too long') {
+  constructor (message = 'Something took too long') {
     super(message);
     Object.setPrototypeOf(this, TimeoutError.prototype);
   }
@@ -29,19 +31,19 @@ interface IWait<T> extends IDeferred<T> {
   stop: () => void;
 }
 
-export function wait(ms: number): IWait<void> {
-  const d: any = Deferred();
+export function wait (ms: number): IWait<void> {
+  const d = Deferred();
   const timeoutId = setTimeout(() => d.resolve(), ms);
-  d.stop = () => {
+  (d as IWait<void>).stop = () => {
     clearTimeout(timeoutId);
     d.resolve();
   };
-  return d;
+  return d as IWait<void>;
 }
 
-export async function timeout<T>(
+export async function timeout<T> (
   awaitable: Promise<T>,
-  { wait: waitTime = config.TIMEOUT, thrown = new TimeoutError() } = {},
+  { wait: waitTime = config.TIMEOUT, thrown = new TimeoutError() } = {}
 ) {
   const thrower = async () => {
     await wait(waitTime);
@@ -50,14 +52,14 @@ export async function timeout<T>(
   return Promise.race([awaitable, thrower()]);
 }
 
-export async function* waits(times: Iterable<number>) {
+export async function * waits (times: Iterable<number>) {
   for (const t of times) {
     await wait(t); // eslint-disable-line no-await-in-loop
     yield t;
   }
 }
 
-export function* fToGen(f: (number) => number, x0 = 0) {
+export function * fToGen (f: (number) => number, x0 = 0) {
   let x = x0;
   yield x;
   while (true) {
@@ -65,26 +67,26 @@ export function* fToGen(f: (number) => number, x0 = 0) {
   }
 }
 
-export function toDeferred<T>(p: Promise<T>): IDeferred<T> {
+export function toDeferred<T> (p: Promise<T>): IDeferred<T> {
   const out = Deferred() as IDeferred<T>;
   p.then(out.resolve);
   p.catch(out.reject);
   return out;
 }
 
-export function cancellable(iter) {
+export function cancellable (iter) {
   const deferred = Deferred();
   return {
-    [Symbol.asyncIterator](): AsyncIterator<any> {
+    [Symbol.asyncIterator] (): AsyncIterator<unknown> {
       return {
-        async next() {
+        async next () {
           return Promise.race([iter.next(), deferred]);
-        },
+        }
       };
     },
-    cancel() {
+    cancel () {
       deferred.resolve({ done: true });
-    },
+    }
   };
 }
 
@@ -95,25 +97,25 @@ export class Retryer {
 
   inProgress = false;
 
-  result: any;
+  result: unknown;
 
   stopLoop = () => {};
 
-  constructor(frequency = 2000, limit = 10) {
+  constructor (frequency = 2000, limit = 10) {
     Object.assign(this, { frequency, limit });
   }
 
-  onSuccess(result) {
+  onSuccess (result) {
     this.result = result;
     this.stop();
   }
 
-  stop() {
+  stop () {
     this.inProgress = false;
     this.stopLoop();
   }
 
-  async retry(callback) {
+  async retry (callback) {
     if (this.inProgress) return;
     this.inProgress = true;
     let count = 0;
@@ -134,26 +136,26 @@ export class Retryer {
 
 const QueueDone = Symbol('QueueDone');
 
-function _box(x) {
+function _box (x) {
   return [x];
 }
 
-function _unbox(x) {
+function _unbox (x) {
   return x[0];
 }
 
-export class AsyncQueue {
+export class AsyncQueue<T> {
   _queue = [];
 
-  _waiter: IDeferred<any> | null = null;
+  _waiter: IDeferred<unknown> | null = null;
 
   _done = false;
 
-  async get() {
+  async get () {
     return _unbox(await this._get());
   }
 
-  _get() {
+  _get () {
     if (this._queue.length) {
       return this._queue.shift();
     }
@@ -163,11 +165,11 @@ export class AsyncQueue {
     return this._waiter;
   }
 
-  get size() {
+  get size () {
     return this._queue.length;
   }
 
-  _addFunc(x: any[], func) {
+  _addFunc (x: unknown[], func) {
     if (this._done) {
       throw new Error('Cannot push on a done queue');
     }
@@ -179,21 +181,21 @@ export class AsyncQueue {
     }
   }
 
-  push(...stuff) {
+  push (...stuff) {
     stuff.forEach((x) => {
       this._addFunc(x, (y) => this._queue.push(y));
     });
     return this;
   }
 
-  unshift(...stuff) {
+  unshift (...stuff) {
     stuff.forEach((x) => {
       this._addFunc(x, (y) => this._queue.unshift(y));
     });
     return this;
   }
 
-  done() {
+  done () {
     this._done = true;
     if (!this._waiter) {
       this._waiter = Deferred();
@@ -201,24 +203,24 @@ export class AsyncQueue {
     this._waiter.resolve(QueueDone);
   }
 
-  [Symbol.asyncIterator]() {
+  [Symbol.asyncIterator] () {
     const self = this;
     return {
-      async next() {
+      async next () {
         const value = await self._get();
         if (value === QueueDone) {
           return { done: true } as { done: boolean, value: undefined };
         }
 
-        return { done: false, value: _unbox(value) } as { done: boolean, value: any};
-      },
+        return { done: false, value: _unbox(value) } as { done: boolean, value: T};
+      }
     };
   }
 }
 
 // combine async iterators into one
-export function combine<T>(...aiters: AsyncIterable<T>[]): AsyncIterable<T> {
-  const queue = new AsyncQueue();
+export function combine<T> (...aiters: AsyncIterable<T>[]): AsyncIterable<T> {
+  const queue: AsyncQueue<T> = new AsyncQueue();
   const naiters = aiters.length;
   let nfinished = 0;
   aiters.map(async (aiter) => {
@@ -233,13 +235,13 @@ export function combine<T>(...aiters: AsyncIterable<T>[]): AsyncIterable<T> {
   return queue;
 }
 
-export function unique(iterable, hashFunc = (x) => x) {
+export function unique (iterable, hashFunc = (x) => x) {
   const seen = new Set();
   return {
-    [Symbol.iterator]() {
+    [Symbol.iterator] () {
       const iterator = iterable[Symbol.iterator]();
       return {
-        next() {
+        next () {
           const res = iterator.next();
           if (res?.done) return res;
           const hash = hashFunc(res.value);
@@ -248,13 +250,13 @@ export function unique(iterable, hashFunc = (x) => x) {
             return res;
           }
           return this.next();
-        },
+        }
       };
     },
-    [Symbol.asyncIterator]() {
+    [Symbol.asyncIterator] () {
       const iterator = iterable[Symbol.asyncIterator]();
       return {
-        async next() {
+        async next () {
           const res = await iterator.next();
           if (res?.done) return res;
           const hash = hashFunc(res.value);
@@ -263,14 +265,14 @@ export function unique(iterable, hashFunc = (x) => x) {
             return res;
           }
           return this.next();
-        },
+        }
       };
-    },
+    }
   };
 }
 
-export function asCompleted<T>(...args: Promise<T>[]): AsyncIterable<T> {
-  const queue = new AsyncQueue();
+export function asCompleted<T> (...args: Promise<T>[]): AsyncIterable<T> {
+  const queue: AsyncQueue<T> = new AsyncQueue();
   const running = new Set();
   args.forEach((p) => {
     running.add(p);

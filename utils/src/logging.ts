@@ -4,7 +4,7 @@ import config from './config.js';
 import { FifoMap } from './cache.js';
 import { Target } from './target.js';
 
-export function getGlobal() {
+export function getGlobal () {
   if (typeof global !== 'undefined') return global;
   return window;
 }
@@ -16,15 +16,15 @@ class LogBook extends FifoMap {
 
   onLog = new Target();
 
-  constructor(maxSize = 1000) {
+  constructor (maxSize = 1000) {
     super(maxSize);
   }
 
-  dump() {
+  dump () {
     return Array.from(this).reverse();
   }
 
-  prettyLog() {
+  prettyLog () {
     let out = '';
     for (const [i, entry] of this.dump()) {
       out += `
@@ -34,7 +34,7 @@ class LogBook extends FifoMap {
     return out;
   }
 
-  log(...entries) {
+  log (...entries) {
     if (this.print) {
       console.log(...entries); // eslint-disable-line
     }
@@ -44,7 +44,7 @@ class LogBook extends FifoMap {
   }
 }
 
-function makeLog() {
+function makeLog () {
   const logBook = new LogBook();
   const log = logBook.log.bind(logBook);
 
@@ -64,7 +64,7 @@ export const INFO_LOG_LEVEL = 4;
 
 export const LOG_LEVELS = {
   INFO: INFO_LOG_LEVEL,
-  DEBUG: DEBUG_LOG_LEVEL,
+  DEBUG: DEBUG_LOG_LEVEL
 };
 
 log.debug = (...args) => {
