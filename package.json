@@ -1,4 +1,4 @@
 {
   "private": true,
-  "workspaces": ["peer", "aggregator", "dev", "web"]
+  "workspaces": ["peer", "aggregator", "dev", "web", "utils"]
 }
