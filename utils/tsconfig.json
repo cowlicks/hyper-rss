@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "preserveSymlinks": true,
+    "target": "esnext",
+    "module": "nodenext",
+    "allowJs": true,
+    "importHelpers": true,
+    "experimentalDecorators": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "scripthost"
+    ]
+  },
+  "exclude": [
+    "**/node_modules",
+    "**/dist"
+  ],
+  "include": [
+    "src/"
+  ]
+}

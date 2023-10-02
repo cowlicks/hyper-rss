@@ -1,0 +1,28 @@
+{
+  "name": "@hrss/utils",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "lint": "eslint . --ext ts"
+  },
+  "dependencies": {
+    "cross-env": "^7.0.3",
+    "isomorphic-ws": "^4.0.1",
+    "moment": "^2.29.1",
+    "tslib": "^2.0.1",
+    "uuid": "^8.3.2"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@hrss/dev": "1.0.0",
+    "@types/node": "^20.7.1",
+    "@typescript-eslint/eslint-plugin": "^6.7.3",
+    "@typescript-eslint/parser": "^6.7.3",
+    "eslint": "^8.50.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-import-resolver-alias": "^1.1.2",
+    "eslint-plugin-import": "^2.22.1",
+    "typescript": "^5.2.2"
+  }
+}
