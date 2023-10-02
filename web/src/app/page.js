@@ -8,8 +8,8 @@ const URL = 'ws://localhost:8080';
 
 async function yo (url) {
   const c = WebClient.fromUrl(url);
-  const res = await c.request('testFunc', [4]);
-  console.log(res);
+  const res = await c.request('getFeedsMetadata', [{ wait: false, update: false }]);
+  console.log(JSON.stringify(res, null, 2));
   return 'foo';
 }
 

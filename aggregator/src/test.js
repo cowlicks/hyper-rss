@@ -6,6 +6,8 @@ import { withTmpDir, withUpdatedWriter } from '../../peer/src/utils/tests.js';
 import { CHAPO, XKCD } from '../../peer/src/const.js';
 import { fileExists, withContext } from '../../peer/src/utils/index.js';
 import { AGGREGATOR_TEST_DATA } from './const.js';
+import { RpcServer } from './back.js';
+import { wait } from '@hrss/utils';
 
 const withAggregator = async (func) => {
   const obj = {};

@@ -1,13 +1,13 @@
-import WebSocket, { WebSocketServer } from 'ws';
+import WebSocket from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 
 import config, { RPC_ERROR_CODE_METHOD_NOT_FOUND } from '@hrss/utils/dist/config.js';
 import { Target } from '@hrss/utils/dist/target.js';
 import { log } from '@hrss/utils/dist/logging.js';
-import { isNullish, clone } from '@hrss/utils/dist/index.js';
+import { clone } from '@hrss/utils/dist/index.js';
 import { startTiming } from '@hrss/utils/dist/performance.js';
 
-export class Server {
+export class RpcServer {
   constructor ({ port = 8080 } = {}) {
     Object.assign(this, {
       port,
@@ -25,7 +25,7 @@ export class Server {
 
     this.port = port;
     this.wss = new WebSocket.Server({ port });
-    this.wss.on('headers', (_, request) => log(`New Connection:
+    this.wss.on('headers', (_, request) => console.log(`New Connection:
   sec-websocket-key = [${request.headers['sec-websocket-key']}]
   remoteAddress = [${request?.socket?.remoteAddress}]`));
     this.wss.on('connection', (ws) => {
@@ -35,21 +35,7 @@ export class Server {
   }
 }
 
-export function eventMessage (data) {
-  return { type: 'event', data };
-}
-
-function isOkResponse (r) {
-  return r.error === 0;
-}
-
 export class ClientConnection {
-  // ws: WebSocket;
-
-  // store: Store;
-
-  // id: string;
-
   constructor (ws, store, id = uuidv4()) {
     Object.assign(
       this,
@@ -79,14 +65,14 @@ export class ClientConnection {
     this.send({ id, error });
   }
 
-  notify (data) {
-    this.send(eventMessage(data));
+  notify (method, params) {
+    this.send({ method, params });
   }
 
   async onMessage (msg) {
-    console.log(msg);
     const funcName = msg.method;
-    if (!this.store[funcName]) {
+
+    if (!this.store.externalApi[funcName]) {
       this.respondErr(msg.id, {
         code: RPC_ERROR_CODE_METHOD_NOT_FOUND,
         message: 'Unrecognized method',
@@ -98,7 +84,7 @@ export class ClientConnection {
     try {
       const end = startTiming();
       log(`Calling API method: [${funcName}]`);
-      const result = await this.store[funcName]?.(...args);
+      const result = await this.store.externalApi[funcName]?.(...args);
       log(`API call completed for: [${funcName}]. It took: [${end()} ms]`);
       this.respondOk(msg.id, result);
     } catch (e) {
@@ -121,7 +107,8 @@ export class Store {
       {
         id,
         server,
-        clients: []
+        clients: [],
+        externalApi: {}
       });
   }
 
@@ -145,12 +132,3 @@ export class Store {
     this.log(`Removed Client.id [${client.id}]`);
   }
 }
-
-(async () => {
-  const s = new Server();
-  s.store.testFunc = (a) => {
-    console.log('testFunc called with ', a);
-    return a + 42;
-  };
-  s.listenToClients();
-})();

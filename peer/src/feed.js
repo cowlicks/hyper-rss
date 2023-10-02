@@ -27,8 +27,8 @@ export function orderStringFromNumber (num, nDigits = N_ORDER_DIGITS_DEFAULT) {
 }
 
 export class OrderedHyperbee extends Hyperbee {
-  async getMetadataValue (key) {
-    const out = await this.sub(METADATA_NAMESPACE).get(key);
+  async getMetadataValue (key, options) {
+    const out = await this.sub(METADATA_NAMESPACE).get(key, { ...options });
     if (!out) return out;
     return JSON.parse(out.value.toString());
   }
@@ -41,10 +41,10 @@ export class OrderedHyperbee extends Hyperbee {
     return this.sub(METADATA_NAMESPACE).put(key, value, options);
   }
 
-  async getMetadata () {
+  async getMetadata (options) {
     const out = {};
     for (const field of RSS_METADATA_FIELDS) {
-      out[field] = await this.getMetadataValue(field);
+      out[field] = await this.getMetadataValue(field, options);
     }
     return out;
   }

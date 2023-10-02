@@ -89,7 +89,11 @@ export class Aggregator {
     return Promise.all([...[...this.readers.keys()].map(dks => this.stopReader(dks))]);
   }
 
-  async getFeedsMetadata () {
-    return Promise.all([...this.readers.values()].map((r) => r.getMetadata()));
+  async getFeedsMetadata (options) {
+    return Promise.all(
+      [...this.readers.entries()].map(([key, reader]) => {
+        return reader.getMetadata(options).then(result => [key, result]);
+      })
+    );
   }
 }

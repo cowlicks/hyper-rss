@@ -53,8 +53,8 @@ export class Peer {
     ]);
   }
 
-  async getMetadata () {
-    return await this.bTrees.feed.getMetadata();
+  async getMetadata (options) {
+    return await this.bTrees.feed.getMetadata(options);
   }
 
   async getFeed () {
