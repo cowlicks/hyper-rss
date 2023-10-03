@@ -1,6 +1,6 @@
 import { fork } from 'node:child_process';
-import { join } from 'node:path';
-import { SERVER_URL, SRC_DIR, STOP_PROCESS } from '../const.js';
+
+import { STOP_PROCESS } from '../const.js';
 import { Deferred } from '../utils/index.js';
 
 // TODO how to handle whenever there is an error in the subprocess? try
@@ -19,21 +19,4 @@ export async function withProcess ({ modulePath, args = [], options = {} }, func
     console.error(e);
   }
   await onClose;
-}
-
-export async function withRssSubProcess (name, func) {
-  await withProcess({
-    modulePath: join(SRC_DIR, './tools/tmpFeed.js'),
-    args: [name]
-  },
-  async (proc) => {
-    const d = Deferred();
-    proc.on('message', (msg) => {
-      if (msg.kind === SERVER_URL) {
-        d.resolve(msg.data);
-      }
-    });
-    const url = await d;
-    await func(url);
-  });
 }

@@ -51,7 +51,7 @@ export async function serveDirectory (path) {
   const server = await new Promise(resolve => {
     const out = app.listen(() => {
       resolve(out);
-    }
+    },
     );
   });
   console.log(`Running on port ${server?.address().port}`);
@@ -63,7 +63,7 @@ export async function serveRss (name) {
   return serveDirectory(dir);
 }
 
-const urlFromAddress = ({ address, family, port }) => {
+export const urlFromAddress = ({ address = 'localhost', family = 'ipv4', port }) => {
   return `http://${family.endsWith('6') ? `[${address}]` : address}:${port}`;
 };
 
@@ -97,8 +97,8 @@ const itemToRssStyleJson = (item) => {
     const { length, type, url } = item.enclosure;
     item.enclosure = {
       $: {
-        url, type, length
-      }
+        url, type, length,
+      },
     };
   }
   return item;
@@ -113,10 +113,10 @@ const toRssStyleJson = (obj) => {
   return {
     rss: {
       $: {
-        version: '2.0'
+        version: '2.0',
       },
-      channel: orderObj(['title', 'link', 'description', 'language', 'channel'], tmp)
-    }
+      channel: orderObj(['title', 'link', 'description', 'language', 'channel'], tmp),
+    },
   };
 };
 
@@ -130,7 +130,7 @@ export async function mutateRss (rssXmlStr, func) {
 function createLocalFilePathAndLocalUrl (url, fileName, {
   fileDirectory = DEFAULT_FILE_DIRECTORY,
   pathPrefix = DEFAULT_PATH_PREFIX,
-  origin = DEFAULT_LOCAL_ORIGIN
+  origin = DEFAULT_LOCAL_ORIGIN,
 }) {
   const relativePath = join(fileDirectory, fileName);
   const filePath = join(pathPrefix, relativePath);

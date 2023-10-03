@@ -2,9 +2,11 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { existsSync, rmSync } from 'node:fs';
+
+import { SERVER_URL, SRC_DIR } from '../const.js';
 import { Writer } from '../writer.js';
-import { withRssSubProcess } from '../tools/forkedFeed.js';
-import { getOnExit } from './index.js';
+import { Deferred, getOnExit } from './index.js';
+import { withProcess } from './process.js';
 
 const TMP_DIR_PREFIX = 'hrss-test-';
 
@@ -42,7 +44,7 @@ export async function withTmpWriter (rssName, func) {
         await writer.close();
       }
     },
-    (pref) => `${pref}tmp-writer`
+    (pref) => `${pref}tmp-writer`,
     );
   });
 }
@@ -51,5 +53,22 @@ export async function withUpdatedWriter (rssName, testFunc) {
   await withTmpWriter(rssName, async (writer) => {
     await writer.updateFeed();
     await testFunc(writer);
+  });
+}
+
+export async function withRssSubProcess (name, func) {
+  await withProcess({
+    modulePath: join(SRC_DIR, './tools/tmpFeed.js'),
+    args: [name],
+  },
+  async (proc) => {
+    const d = Deferred();
+    proc.on('message', (msg) => {
+      if (msg.kind === SERVER_URL) {
+        d.resolve(msg.data);
+      }
+    });
+    const url = await d;
+    await func(url);
   });
 }
