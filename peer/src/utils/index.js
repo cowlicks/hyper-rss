@@ -21,14 +21,14 @@ export class EventListener {
   }
 
   onEvent (event_) {
-    return this.funcs.map(func => func(event_));
+    return [...this.funcs].map(func => func(event_));
   }
 }
 
 const EXIT_EVENTS = [
   'exit',
-  'SIGINT',
-  'SIGTERM'
+  'SIGTERM',
+  'SIGINT'
 ];
 let _onExit = null;
 
