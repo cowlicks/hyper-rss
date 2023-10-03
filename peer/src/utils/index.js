@@ -28,7 +28,7 @@ export class EventListener {
 const EXIT_EVENTS = [
   'exit',
   'SIGTERM',
-  'SIGINT'
+  'SIGINT',
 ];
 let _onExit = null;
 
@@ -78,7 +78,7 @@ export class AsyncQueue {
       _queue: [],
       _waiter: null,
       _done: false,
-      name: randName()
+      name: randName(),
     });
   }
 
@@ -150,7 +150,7 @@ export class AsyncQueue {
         }
 
         return { done: false, value: _unbox(value) };
-      }
+      },
     };
   }
 }
@@ -228,7 +228,7 @@ export function filterObj (filterFields, o) {
 // NB we only access enter/func/exit at call time to allow them
 // to be added `obj` dynamically in then enter/func functions.
 export async function withContext (
-  obj
+  obj,
 ) {
   const ctx = await obj.enter();
   try {
