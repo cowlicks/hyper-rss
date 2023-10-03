@@ -1,6 +1,6 @@
 import { SERVER_URL, STOP_PROCESS, XKCD } from '../const.js';
 import { Deferred } from '../utils/index.js';
-import { withTmpRssFeed } from './mirror.js';
+import { withTmpRssFeed } from '../tools/mirror.js';
 
 (async () => {
   const waitUntil = Deferred();

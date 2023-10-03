@@ -15,7 +15,7 @@ export class Reader extends Peer {
       this,
       {
         discoveryKeyString,
-        discoveryKey: bufferFromEncodedStr(discoveryKeyString)
+        discoveryKey: bufferFromEncodedStr(discoveryKeyString),
       });
   }
 
@@ -46,7 +46,7 @@ export class Reader extends Peer {
     }
 
     const {
-      keys
+      keys,
     } = await keysCore.get(0);
 
     const feedCore = store.get({ key: bufferFromEncodedStr(keys.feed) });
@@ -62,10 +62,10 @@ export class Reader extends Peer {
           keys: keysCore,
           feed: feedCore,
           blobKeys: blobKeysCore,
-          blobs: blobsCore
+          blobs: blobsCore,
         })),
-        storageName
-      }
+        storageName,
+      },
     );
     return this;
   }

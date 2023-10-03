@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { existsSync, rmSync } from 'node:fs';
 
-import { SERVER_URL, SRC_DIR } from '../const.js';
+import { SERVER_URL, PROCESS_SCRIPTS_DIR } from '../const.js';
 import { Writer } from '../writer.js';
 import { Deferred, getOnExit } from './index.js';
 import { withProcess } from './process.js';
@@ -58,7 +58,7 @@ export async function withUpdatedWriter (rssName, testFunc) {
 
 export async function withRssSubProcess (name, func) {
   await withProcess({
-    modulePath: join(SRC_DIR, './tools/tmpFeed.js'),
+    modulePath: join(PROCESS_SCRIPTS_DIR, './tmpFeed.js'),
     args: [name],
   },
   async (proc) => {
