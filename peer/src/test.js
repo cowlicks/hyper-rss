@@ -81,7 +81,7 @@ test('Smoke test read write XKCD',
         t.pass();
       });
     });
-  }
+  },
 );
 
 test('Smoke test read write CHAPO',
@@ -98,7 +98,7 @@ test('Smoke test read write CHAPO',
         t.pass();
       });
     });
-  }
+  },
 );
 
 const TEST_KEY = 'foobar',
@@ -144,5 +144,5 @@ test('Writer get feed title',
       t.is(await writer.bTrees.feed.getMetadataValue('description'), description);
       t.pass();
     });
-  }
+  },
 );
