@@ -1,4 +1,4 @@
-import { Deferred, AsyncQueue } from '@hrss/utils/dist/async.js';
+import { AsyncQueue } from '@hrss/utils/dist/async.js';
 import { WebClient } from '@hrss/utils/dist/messages.js';
 import { CLIENT_RESULT, SEND_CLIENT_MESSAGE, STOP_PROCESS } from '../const.js';
 
