@@ -1,3 +1,4 @@
+import { Target } from '@hrss/utils';
 import { open, mkdir, stat } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { ENCODING } from '../const.js';
@@ -10,21 +11,6 @@ export const randName = (len = 6) => {
   return new Array(len).fill(0).map(() => alph[Math.floor(Math.random() * 26)]).join('');
 };
 
-// For fully featured listener see privacypossum src/js/utils:listenerMixin
-export class EventListener {
-  constructor () {
-    this.funcs = new Set();
-  }
-
-  addListener (func) {
-    this.funcs.add(func);
-  }
-
-  onEvent (event_) {
-    return [...this.funcs].map(func => func(event_));
-  }
-}
-
 const EXIT_EVENTS = [
   'exit',
   'SIGTERM',
@@ -36,8 +22,8 @@ export const getOnExit = () => {
   if (_onExit !== null) {
     return _onExit;
   }
-  _onExit = new EventListener();
-  EXIT_EVENTS.forEach(eventName => process.on(eventName, (...exitArgs) => _onExit.onEvent(exitArgs)));
+  _onExit = new Target();
+  EXIT_EVENTS.forEach(eventName => process.on(eventName, (...exitArgs) => _onExit.dispatch(exitArgs)));
   return _onExit;
 };
 
@@ -48,8 +34,6 @@ export function encodedStrFromBuffer (buffer) {
 export function bufferFromEncodedStr (encodedStr) {
   return Buffer.from(encodedStr, ENCODING);
 }
-
-// Eventualy we should move this async stuff it's own library
 
 export async function writeFile (fileName, data, options = {}) {
   if (options.createDir) {
