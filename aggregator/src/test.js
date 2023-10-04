@@ -2,12 +2,11 @@ import test from 'ava';
 import { cp } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Aggregator } from './index.js';
-import { withTmpDir, withUpdatedWriter } from '../../peer/src/utils/tests.js';
+import { withRpcClient, withTmpDir, withUpdatedWriter } from '../../peer/src/utils/tests.js';
 import { CHAPO, XKCD } from '../../peer/src/const.js';
 import { fileExists, withContext } from '../../peer/src/utils/index.js';
 import { AGGREGATOR_TEST_DATA } from './const.js';
 import { RpcServer } from './back.js';
-import { wait } from '@hrss/utils';
 
 const withAggregator = async (func) => {
   const obj = {};
@@ -51,6 +50,30 @@ test('Aggregator init from storage directory', async (t) => {
     const aggregator = new Aggregator({ storageName: tmpd });
     await aggregator.init();
     t.is((await aggregator.getFeedsMetadata()).length, 2);
+    await aggregator.close();
+  });
+  t.pass();
+});
+
+test('Aggregator with RpcServer', async (t) => {
+  t.timeout(1e5);
+  const testDataDir = 'agg_init';
+  await withTmpDir(async (tmpd) => {
+    await cp(join(AGGREGATOR_TEST_DATA, testDataDir), tmpd, { recursive: true });
+    const aggregator = new Aggregator({ storageName: tmpd });
+    await aggregator.init();
+    const server = new RpcServer();
+    server.store.externalApi = aggregator;
+    await server.listenToClients();
+    await withRpcClient(server.url, async ({ proc, messages, sender, close }) => {
+      const aiter = messages[Symbol.asyncIterator]();
+
+      sender('getFeedsMetadata', []);
+      const clintMsg = (await aiter.next()).value;
+      close();
+      t.is(clintMsg?.response.result?.length, 2);
+    });
+
     await aggregator.close();
   });
   t.pass();
