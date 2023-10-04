@@ -4,77 +4,82 @@ import { join } from 'node:path';
 import { Aggregator } from './index.js';
 import { withRpcClient, withTmpDir, withUpdatedWriter } from '../../peer/src/utils/tests.js';
 import { CHAPO, XKCD } from '../../peer/src/const.js';
-import { fileExists, withContext } from '../../peer/src/utils/index.js';
+import { fileExists } from '../../peer/src/utils/index.js';
 import { AGGREGATOR_TEST_DATA } from './const.js';
 import { RpcServer } from './back.js';
 
-const withAggregator = async (func) => {
-  const obj = {};
-  obj.enter = async () => {
-    return await withTmpDir(async (tmpd) => {
-      const aggregator = new Aggregator({ storageName: tmpd });
-      await aggregator.init();
-      obj.exit = () => aggregator.close();
-      obj.func = async () => {
-        await func({ aggregator, tmpd });
-      };
-    });
-  };
-  return withContext(obj);
+const withAggregator = async (aggArgs, func) => {
+  const aggregator = new Aggregator(...aggArgs);
+  await aggregator.init();
+  try {
+    const out = await func({ aggregator });
+    await aggregator.close();
+    return out;
+  } catch (e) {
+    await aggregator.close();
+    throw e;
+  }
 };
 
-test('Aggregator', async (t) => {
-  await withAggregator(async ({ aggregator, tmpd }) => {
-    await withUpdatedWriter(CHAPO, async (chapoWriter) => {
-      const chapoKey = chapoWriter.discoveryKeyString();
-      await aggregator.addReader(chapoKey);
-      t.assert(await fileExists(join(tmpd, chapoKey)));
-      t.is((await aggregator.getFeedsMetadata()).length, 1);
+test('Aggregator add multiple feeds', async (t) => {
+  t.plan(4);
+  await withTmpDir(async tmpd => {
+    await withAggregator([{ storageName: tmpd }], async ({ aggregator }) => {
+      await withUpdatedWriter(CHAPO, async (chapoWriter) => {
+        const chapoKey = chapoWriter.discoveryKeyString();
+        await aggregator.addReader(chapoKey);
+        t.assert(await fileExists(join(tmpd, chapoKey)));
+        t.is((await aggregator.getFeedsMetadata()).length, 1);
 
-      await withUpdatedWriter(XKCD, async (xkcdWriter) => {
-        const xkcdKey = xkcdWriter.discoveryKeyString();
-        await aggregator.addReader(xkcdKey);
-        t.assert(await fileExists(join(tmpd, xkcdKey)));
-        t.is((await aggregator.getFeedsMetadata()).length, 2);
+        await withUpdatedWriter(XKCD, async (xkcdWriter) => {
+          const xkcdKey = xkcdWriter.discoveryKeyString();
+          await aggregator.addReader(xkcdKey);
+          t.assert(await fileExists(join(tmpd, xkcdKey)));
+          t.is((await aggregator.getFeedsMetadata()).length, 2);
+        });
       });
     });
   });
-  t.pass();
 });
+
+const AGG_DATA_DIR_WITH_TWO_FEEDS = 'agg_init';
+
+const withAggFromDisk = async (dataDir, func) => {
+  await withTmpDir(async tmpd => {
+    await cp(join(AGGREGATOR_TEST_DATA, dataDir), tmpd, { recursive: true });
+    return await withAggregator([{ storageName: tmpd }], async ({ aggregator }) => {
+      return await func({ tmpd, aggregator });
+    });
+  });
+};
 
 test('Aggregator init from storage directory', async (t) => {
   t.timeout(1e5);
-  const testDataDir = 'agg_init';
-  await withTmpDir(async (tmpd) => {
-    await cp(join(AGGREGATOR_TEST_DATA, testDataDir), tmpd, { recursive: true });
-    const aggregator = new Aggregator({ storageName: tmpd });
-    await aggregator.init();
+  t.plan(1);
+  await withAggFromDisk(AGG_DATA_DIR_WITH_TWO_FEEDS, async ({ aggregator }) => {
     t.is((await aggregator.getFeedsMetadata()).length, 2);
-    await aggregator.close();
   });
-  t.pass();
 });
 
 test('Aggregator with RpcServer', async (t) => {
   t.timeout(1e5);
-  const testDataDir = 'agg_init';
-  await withTmpDir(async (tmpd) => {
-    await cp(join(AGGREGATOR_TEST_DATA, testDataDir), tmpd, { recursive: true });
-    const aggregator = new Aggregator({ storageName: tmpd });
-    await aggregator.init();
+  t.plan(1);
+  await withAggFromDisk(AGG_DATA_DIR_WITH_TWO_FEEDS, async ({ aggregator }) => {
     const server = new RpcServer();
     server.store.externalApi = aggregator;
     await server.listenToClients();
-    await withRpcClient(server.url, async ({ proc, messages, sender, close }) => {
+    await withRpcClient(server.url, async ({ messages, sender, close }) => {
       const aiter = messages[Symbol.asyncIterator]();
 
-      sender('getFeedsMetadata', []);
+      await sender('getFeedsMetadata', []);
       const clintMsg = (await aiter.next()).value;
-      close();
-      t.is(clintMsg?.response.result?.length, 2);
+      try {
+        t.is(clintMsg?.response.result?.length, 2);
+      } finally {
+        await close();
+      }
     });
 
     await aggregator.close();
   });
-  t.pass();
 });

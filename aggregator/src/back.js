@@ -1,14 +1,15 @@
 import WebSocket from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 
+import express from 'express';
 import { RPC_ERROR_CODE_METHOD_NOT_FOUND } from '@hrss/utils/dist/config.js';
 import { Target } from '@hrss/utils/dist/target.js';
 import { log } from '@hrss/utils/dist/logging.js';
 import { clone } from '@hrss/utils/dist/index.js';
-import { urlFromAddress } from '@hrss/peer/src/tools/mirror.js';
 import { startTiming } from '@hrss/utils/dist/performance.js';
-import express from 'express';
-import { randName } from '@hrss/peer/src/utils';
+
+import { urlFromAddress } from '@hrss/peer/src/tools/mirror.js';
+import { randName } from '@hrss/peer/src/utils/index.js';
 
 export class RpcServer {
   constructor () {
