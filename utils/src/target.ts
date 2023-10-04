@@ -16,7 +16,7 @@ export class Target {
   constructor ({
     onDispatch = noop,
     beforeDispatch = passThrough,
-    afterDispatch = passThrough
+    afterDispatch = passThrough,
   }: {
     onDispatch?: DispatchFunction,
     beforeDispatch?: BeforDispatchFunction,
@@ -54,9 +54,9 @@ export class Target {
       Promise.all(
         [
           this.onDispatch,
-          ...this.funcs
-        ].map((f) => f(x))
-      )
+          ...this.funcs,
+        ].map((f) => f(x)),
+      ),
     );
   }
 }

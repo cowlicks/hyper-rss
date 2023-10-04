@@ -64,7 +64,7 @@ export const INFO_LOG_LEVEL = 4;
 
 export const LOG_LEVELS = {
   INFO: INFO_LOG_LEVEL,
-  DEBUG: DEBUG_LOG_LEVEL
+  DEBUG: DEBUG_LOG_LEVEL,
 };
 
 log.debug = (...args) => {

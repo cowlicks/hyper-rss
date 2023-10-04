@@ -93,7 +93,7 @@ export class BaseWsConnection {
     ${e}
   `);
         }
-      }
+      },
     });
     this.onError = new Target();
   }
