@@ -1,7 +1,7 @@
 import https from 'https';
 import http from 'http';
 
-import { AsyncQueue } from './index.js';
+import { AsyncQueue } from '@hrss/utils';
 import { takeAll } from './async.js';
 
 /* Gets bytes from a url as an async iterable. Follows redirects */
