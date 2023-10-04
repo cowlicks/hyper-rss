@@ -15,8 +15,8 @@ export class KeyedBlobs {
     Object.assign(this, {
       cores: {
         blobKeys: blobKeysCore,
-        blobs: blobsCore
-      }
+        blobs: blobsCore,
+      },
     });
   }
 
@@ -25,7 +25,7 @@ export class KeyedBlobs {
       this.cores.blobKeys.close(),
       this.cores.blobs.close(),
       this?.keys?.close(),
-      this?.blosbs?.close()
+      this?.blosbs?.close(),
     ]);
   }
 
@@ -35,7 +35,7 @@ export class KeyedBlobs {
       this,
       {
         keys: new Hyperbee(this.cores.blobKeys),
-        blobs: new Hyperblobs(this.cores.blobs)
+        blobs: new Hyperblobs(this.cores.blobs),
       });
   }
 

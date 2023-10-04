@@ -12,7 +12,7 @@ export async function retry (
   {
     attemps = DEFAULT_RETRY_ATTEMPTS,
     timeout = DEFAULT_RETRY_TIMEOUT,
-    backoff = DEFAULT_RETRY_BACKOFF
+    backoff = DEFAULT_RETRY_BACKOFF,
   } = {}) {
   const start = Date.now();
   let attemptCount = 0;

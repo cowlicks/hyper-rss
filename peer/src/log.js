@@ -41,7 +41,7 @@ const LOG_LEVELS = {
   DEBUG,
   INFO,
   WARN,
-  ERROR
+  ERROR,
 };
 
 const DEFAULT_LOG_LEVEL = 2;
@@ -95,5 +95,5 @@ export const log = {
   debug: makeLogger('DEBUG'),
   info: makeLogger('INFO'),
   warn: makeLogger('WARN'),
-  error: makeLogger('ERROR')
+  error: makeLogger('ERROR'),
 };

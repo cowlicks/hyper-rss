@@ -19,7 +19,7 @@ export async function itemsNotHyperized (rssFeed, hyperbeeItemsDb, { hasher = de
 
 export async function downloadAndHash (url, {
   hashAlgorithm = 'sha256',
-  digestEncoding = ENCODING
+  digestEncoding = ENCODING,
 }) {
   const buffer = await downloadToBuffer(url);
   const d = createHash(hashAlgorithm).update(buffer).digest();

@@ -23,13 +23,13 @@ export function storeNames ({
   keysSuffix = HRSS_KEYS_STORE_SUFFIX,
   feedSuffix = HRSS_FEED_STORE_SUFFIX,
   blobKeysSuffix = HRSS_BLOB_KEYS_STORE_SUFFIX,
-  blosbSuffix = HRSS_BLOB_STORE_SUFFIX
+  blosbSuffix = HRSS_BLOB_STORE_SUFFIX,
 } = {}) {
   return {
     keys: `${prefix}-${keysSuffix}`,
     feed: `${prefix}-${feedSuffix}`,
     blobKeys: `${prefix}-${blobKeysSuffix}`,
-    blobs: `${prefix}-${blosbSuffix}`
+    blobs: `${prefix}-${blosbSuffix}`,
   };
 }
 
@@ -83,7 +83,7 @@ export class Writer extends Peer {
     const parser = new Parser();
     Object.assign(
       this,
-      { url, configFileName, opts, parser }
+      { url, configFileName, opts, parser },
     );
     this.log(`Created for URL = [${url}]`);
   }
@@ -104,8 +104,8 @@ export class Writer extends Peer {
         keys: {
           feed: encodedStrFromBuffer(feed.key),
           blobKeys: encodedStrFromBuffer(blobKeys.key),
-          blobs: encodedStrFromBuffer(blobs.key)
-        }
+          blobs: encodedStrFromBuffer(blobs.key),
+        },
       });
     }
 
@@ -118,8 +118,8 @@ export class Writer extends Peer {
         bTrees,
         keyedBlobs,
         ...storeAndCoreRest,
-        parsedRssFeed
-      }
+        parsedRssFeed,
+      },
     );
     await this.maybeSaveConfig();
     return this;
@@ -169,7 +169,7 @@ export class Writer extends Peer {
     return await writeJsonFile(configFileName, {
       url: this.url,
       storageName: this.storageName,
-      discoveryKeyString: this.discoveryKeyString
+      discoveryKeyString: this.discoveryKeyString,
     });
   }
 }

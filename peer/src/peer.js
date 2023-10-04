@@ -9,7 +9,7 @@ export class Peer {
   constructor (peerKind) {
     Object.assign(this, {
       peerKind,
-      name: randName()
+      name: randName(),
     });
   }
 
@@ -22,7 +22,7 @@ export class Peer {
       keys.ready(),
       feed.ready(),
       blobKeys.ready(),
-      blobs.ready()
+      blobs.ready(),
     ]);
 
     const feedBTree = new OrderedHyperbee(feed);
@@ -34,12 +34,12 @@ export class Peer {
         keys,
         feed,
         blobKeys,
-        blobs
+        blobs,
       },
       bTrees: {
-        feed: feedBTree
+        feed: feedBTree,
       },
-      keyedBlobs
+      keyedBlobs,
     };
   }
 
@@ -49,7 +49,7 @@ export class Peer {
       this.cores.keys.update(opts),
       this.cores.feed.update(opts),
       this.cores.blobKeys.update(opts),
-      this.cores.blobs.update(opts)
+      this.cores.blobs.update(opts),
     ]);
   }
 
@@ -70,7 +70,7 @@ export class Peer {
       this.cores.blobKeys.close(),
       this.cores.blobs.close(),
       this.bTrees.feed.close(),
-      this.keyedBlobs.close()
+      this.keyedBlobs.close(),
     ]);
   }
 }
