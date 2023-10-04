@@ -3,9 +3,10 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { existsSync, rmSync } from 'node:fs';
 
-import { SERVER_URL, PROCESS_SCRIPTS_DIR } from '../const.js';
+import { SERVER_URL, PROCESS_SCRIPTS_DIR, STOP_PROCESS, SEND_CLIENT_MESSAGE } from '../const.js';
 import { Writer } from '../writer.js';
 import { Deferred, getOnExit } from './index.js';
+import { AsyncQueue } from '@hrss/utils';
 import { withProcess } from './process.js';
 
 const TMP_DIR_PREFIX = 'hrss-test-';
@@ -70,5 +71,22 @@ export async function withRssSubProcess (name, func) {
     });
     const url = await d;
     await func(url);
+  });
+}
+
+export async function withRpcClient (url, func) {
+  await withProcess({
+    modulePath: join(PROCESS_SCRIPTS_DIR, './rpcClient.js'),
+    args: [url],
+  },
+  async (proc) => {
+    const messages = new AsyncQueue();
+    proc.on('message', msg => messages.push(msg));
+    const close = () => {
+      proc.send({ kind: STOP_PROCESS });
+      messages.close();
+    };
+    const sender = (method, params = []) => proc.send({ kind: SEND_CLIENT_MESSAGE, method, params });
+    return await func({ proc, messages, sender, close });
   });
 }
