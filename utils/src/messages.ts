@@ -64,7 +64,7 @@ export class MessageHandler extends Target {
 
   constructor (
     sender: RpcSender,
-    onMessage = new Target()
+    onMessage = new Target(),
   ) {
     super();
     this.sender = sender;
@@ -103,14 +103,14 @@ export class WebClient extends MessageHandler {
   wsConnection: WsConnection;
 
   constructor (
-    wsCon: WsConnection
+    wsCon: WsConnection,
   ) {
     super(wsCon.send.bind(wsCon), wsCon.onMessage);
     this.wsConnection = wsCon;
   }
 
   close () {
-    this.wsConnection.close();
+    this.wsConnection.shutDown();
   }
 
   shutDown () {
@@ -121,7 +121,7 @@ export class WebClient extends MessageHandler {
     return this.send({
       timestamp: moment().toISOString(),
       method,
-      ...(!isNullish(params) && { params })
+      ...(!isNullish(params) && { params }),
     });
   }
 
@@ -130,7 +130,7 @@ export class WebClient extends MessageHandler {
       id: uuidv4(),
       timestamp: moment().toISOString(),
       method,
-      ...(!isNullish(params) && { params })
+      ...(!isNullish(params) && { params }),
     });
   }
 }

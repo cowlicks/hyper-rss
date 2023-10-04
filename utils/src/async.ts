@@ -43,7 +43,7 @@ export function wait (ms: number): IWait<void> {
 
 export async function timeout<T> (
   awaitable: Promise<T>,
-  { wait: waitTime = config.TIMEOUT, thrown = new TimeoutError() } = {}
+  { wait: waitTime = config.TIMEOUT, thrown = new TimeoutError() } = {},
 ) {
   const thrower = async () => {
     await wait(waitTime);
@@ -81,12 +81,12 @@ export function cancellable (iter) {
       return {
         async next () {
           return Promise.race([iter.next(), deferred]);
-        }
+        },
       };
     },
     cancel () {
       deferred.resolve({ done: true });
-    }
+    },
   };
 }
 
@@ -200,7 +200,11 @@ export class AsyncQueue<T> {
     if (!this._waiter) {
       this._waiter = Deferred();
     }
-    this._waiter.resolve(QueueDone);
+    return this._waiter.resolve(QueueDone);
+  }
+
+  close () {
+    return this.done();
   }
 
   [Symbol.asyncIterator] () {
@@ -213,7 +217,7 @@ export class AsyncQueue<T> {
         }
 
         return { done: false, value: _unbox(value) } as { done: boolean, value: T};
-      }
+      },
     };
   }
 }
@@ -250,7 +254,7 @@ export function unique (iterable, hashFunc = (x) => x) {
             return res;
           }
           return this.next();
-        }
+        },
       };
     },
     [Symbol.asyncIterator] () {
@@ -265,9 +269,9 @@ export function unique (iterable, hashFunc = (x) => x) {
             return res;
           }
           return this.next();
-        }
+        },
       };
-    }
+    },
   };
 }
 
