@@ -1,37 +1,60 @@
 import WebSocket from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 
-import config, { RPC_ERROR_CODE_METHOD_NOT_FOUND } from '@hrss/utils/dist/config.js';
+import { RPC_ERROR_CODE_METHOD_NOT_FOUND } from '@hrss/utils/dist/config.js';
 import { Target } from '@hrss/utils/dist/target.js';
 import { log } from '@hrss/utils/dist/logging.js';
 import { clone } from '@hrss/utils/dist/index.js';
+import { urlFromAddress } from '@hrss/peer/src/tools/mirror.js';
 import { startTiming } from '@hrss/utils/dist/performance.js';
+import express from 'express';
+import { randName } from '@hrss/peer/src/utils';
 
 export class RpcServer {
-  constructor ({ port = 8080 } = {}) {
+  constructor () {
     Object.assign(this, {
-      port,
       wss: null,
       store: new Store(this),
-      onClose: new Target(),
-      ranListenToClients: false
+      onClientClose: new Target(),
+      onServerClose: new Target(),
+      ranListenToClients: false,
+      name: randName(),
     });
   }
 
-  listenToClients (port = this.port ?? config.DAEMON_PORT) {
+  async close () {
+    return await this.onServerClose.dispatch();
+  }
+
+  async listenToClients ({ port } = {}) {
     if (this.ranListenToClients) return;
 
     this.ranListenToClients = true;
 
-    this.port = port;
-    this.wss = new WebSocket.Server({ port });
-    this.wss.on('headers', (_, request) => console.log(`New Connection:
+    const app = express();
+    const server = await new Promise(resolve => {
+      const out = app.listen(port, () => {
+        resolve(out);
+      });
+    });
+    this.onServerClose.addListener(async () => await new Promise(resolve => server.close(resolve)));
+
+    this.wss = new WebSocket.Server({ server });
+    this.url = urlFromAddress(server.address());
+    this.log(`running on ${this.url}`);
+
+    this.wss.on('headers', (_, request) => this.log(`New Connection:
   sec-websocket-key = [${request.headers['sec-websocket-key']}]
   remoteAddress = [${request?.socket?.remoteAddress}]`));
     this.wss.on('connection', (ws) => {
       this.store.addClient(new ClientConnection(ws, this.store));
     });
-    this.wss.on('close', this.onClose.dispatch.bind(this.onClose));
+    this.wss.on('close', this.onClientClose.dispatch.bind(this.onClientClose));
+    return this;
+  }
+
+  log (...x) {
+    console.log(`RpcServer[${this.name}]`, ...x);
   }
 }
 
@@ -83,9 +106,9 @@ export class ClientConnection {
     const args = msg?.params;
     try {
       const end = startTiming();
-      log(`Calling API method: [${funcName}]`);
+      this.log(`Calling API method: [${funcName}]`);
       const result = await this.store.externalApi[funcName]?.(...args);
-      log(`API call completed for: [${funcName}]. It took: [${end()} ms]`);
+      this.log(`API call completed for: [${funcName}]. It took: [${end()} ms]`);
       this.respondOk(msg.id, result);
     } catch (e) {
       this.respondErr(msg.id, {
@@ -95,6 +118,10 @@ export class ClientConnection {
       log.error(`Unexpected error handling client request for Message ${JSON.stringify(msg, null, 2)}.
 Got error: ${e}`);
     }
+  }
+
+  log (...s) {
+    console.log(`Client[${this.id}]`, ...s);
   }
 }
 
@@ -112,8 +139,8 @@ export class Store {
       });
   }
 
-  log (s) {
-    log(`Store.id: [${this.id}] ${s}`);
+  log (...s) {
+    console.log(`Store[${this.id}]`, ...s);
   }
 
   broadcast (data) {
