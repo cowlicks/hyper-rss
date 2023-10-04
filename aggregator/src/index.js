@@ -35,8 +35,8 @@ export class Aggregator {
       this,
       {
         storageName,
-        readers: new Map()
-      }
+        readers: new Map(),
+      },
     );
   }
 
@@ -93,7 +93,7 @@ export class Aggregator {
     return Promise.all(
       [...this.readers.entries()].map(([key, reader]) => {
         return reader.getMetadata(options).then(result => [key, result]);
-      })
+      }),
     );
   }
 }

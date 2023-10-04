@@ -42,7 +42,7 @@ export class ClientConnection {
       {
         ws,
         store,
-        id
+        id,
       });
     this.ws.on('message', (data) => this.onMessage(JSON.parse(data.toString())));
     this.ws.on('close', () => this.end());
@@ -76,7 +76,7 @@ export class ClientConnection {
       this.respondErr(msg.id, {
         code: RPC_ERROR_CODE_METHOD_NOT_FOUND,
         message: 'Unrecognized method',
-        data: { request: clone(msg) }
+        data: { request: clone(msg) },
       });
       return;
     }
@@ -90,7 +90,7 @@ export class ClientConnection {
     } catch (e) {
       this.respondErr(msg.id, {
         error: e?.errno ?? 1,
-        message: String(e)
+        message: String(e),
       });
       log.error(`Unexpected error handling client request for Message ${JSON.stringify(msg, null, 2)}.
 Got error: ${e}`);
@@ -100,7 +100,7 @@ Got error: ${e}`);
 
 export class Store {
   constructor (server = null, {
-    id = uuidv4()
+    id = uuidv4(),
   } = {}) {
     Object.assign(
       this,
@@ -108,7 +108,7 @@ export class Store {
         id,
         server,
         clients: [],
-        externalApi: {}
+        externalApi: {},
       });
   }
 
@@ -127,7 +127,7 @@ export class Store {
   removeClient (client) {
     this.clients.splice(
       this.clients.findIndex(({ id }) => id === client.id),
-      1
+      1,
     );
     this.log(`Removed Client.id [${client.id}]`);
   }
