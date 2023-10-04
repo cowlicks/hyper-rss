@@ -51,25 +51,6 @@ export function bufferFromEncodedStr (encodedStr) {
 
 // Eventualy we should move this async stuff it's own library
 
-/// A promise that can be controlled externally with `.reject` and `.catch` methods.
-export function Deferred () {
-  const o = {};
-  const p = new Promise((resolve, reject) => Object.assign(o, { resolve, reject }));
-  const rejectAndCatch = (rejectionReason, catchFunc = () => {}) => {
-    (o).reject(rejectionReason);
-    p.catch(catchFunc);
-  };
-  return Object.assign(p, o, { rejectAndCatch });
-}
-
-function _box (x) {
-  return [x];
-}
-
-function _unbox (x) {
-  return x[0];
-}
-
 export async function writeFile (fileName, data, options = {}) {
   if (options.createDir) {
     const dir = dirname(fileName);

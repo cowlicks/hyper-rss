@@ -5,8 +5,8 @@ import { existsSync, rmSync } from 'node:fs';
 
 import { SERVER_URL, PROCESS_SCRIPTS_DIR, STOP_PROCESS, SEND_CLIENT_MESSAGE } from '../const.js';
 import { Writer } from '../writer.js';
-import { Deferred, getOnExit } from './index.js';
-import { AsyncQueue } from '@hrss/utils';
+import { getOnExit } from './index.js';
+import { AsyncQueue, Deferred } from '@hrss/utils';
 import { withProcess } from './process.js';
 
 const TMP_DIR_PREFIX = 'hrss-test-';

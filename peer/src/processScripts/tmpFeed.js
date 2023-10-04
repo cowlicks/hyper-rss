@@ -1,5 +1,5 @@
 import { SERVER_URL, STOP_PROCESS, XKCD } from '../const.js';
-import { Deferred } from '../utils/index.js';
+import { Deferred } from '@hrss/utils';
 import { withTmpRssFeed } from '../tools/mirror.js';
 
 (async () => {
