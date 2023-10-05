@@ -11,11 +11,18 @@ export const randName = (len = 6) => {
   return new Array(len).fill(0).map(() => alph[Math.floor(Math.random() * 26)]).join('');
 };
 
+const EXIT_SIGNAL_NAME = 'exit';
+const SIGTERM_SIGNAL_NAME = 'SIGTERM';
+const SIGINT_SIGNAL_NAME = 'SIGINT';
+const SIGHUP_SIGNAL_NAME = 'SIGHUP';
+
 const EXIT_EVENTS = [
-  'exit',
-  'SIGTERM',
-  'SIGINT',
+  EXIT_SIGNAL_NAME,
+  SIGTERM_SIGNAL_NAME,
+  SIGINT_SIGNAL_NAME,
+  SIGHUP_SIGNAL_NAME,
 ];
+
 let _onExit = null;
 
 export const getOnExit = () => {
@@ -23,7 +30,18 @@ export const getOnExit = () => {
     return _onExit;
   }
   _onExit = new Target();
-  EXIT_EVENTS.forEach(eventName => process.on(eventName, (...exitArgs) => _onExit.dispatch(exitArgs)));
+  EXIT_EVENTS.forEach(eventName => process.on(eventName, (...exitArgs) => {
+    _onExit.dispatch(exitArgs);
+
+    if (eventName === EXIT_SIGNAL_NAME) {
+      // see https://nodejs.org/api/process.html#event-exit
+      return;
+    }
+
+    // It must be one of the other signals (SIGTERM, SIGINT, SIGHUP)
+    // See https://nodejs.org/api/process.html#exit-codes
+    process.exit(128 + (exitArgs[1] ?? 0));
+  }));
   return _onExit;
 };
 
