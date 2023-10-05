@@ -214,7 +214,7 @@ export class WsConnection extends BaseWsConnection {
           this.isReady.resolve();
           break;
         default:
-          this.isReady.rejectAndCatch(('Connection closing or closed'));
+          this.isReady.rejectAndCatch(`Connection closing or closed. readyState [${state}]`);
       }
     });
   }
