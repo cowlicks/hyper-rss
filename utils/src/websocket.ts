@@ -110,8 +110,8 @@ export class BaseWsConnection {
     return this._reallyConnect({ url });
   }
 
-  send (msg) {
-    this.connect();
+  async send (msg) {
+    await this.connect();
     this._ws.send(JSON.stringify(msg));
   }
 
@@ -119,7 +119,7 @@ export class BaseWsConnection {
     return isConnected(ws);
   }
 
-  connect (options = {}) {
+  connect (options = {}): Promise<unknown> {
     if (this.isConnected() || this.readyState === 0) return Promise.resolve();
     return this._reallyConnect(options);
   }
