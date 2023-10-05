@@ -2,23 +2,26 @@
 import { ApiProvider, useApiClient } from '@/client';
 import { useEffect, useState } from 'react';
 
-const URL = 'ws://localhost:8080';
-
-function useFeedMetadata () {
+function useRpcCall (method, params) {
   const client = useApiClient();
   const [data, setData] = useState({ loading: true });
   useEffect(() => {
     (async () => {
-      const result = await client.request('getFeedsMetadata', [{ wait: false, update: false }]);
+      const result = await client.request(method, params);
       setData({ data: result });
     })();
-  }, [setData, client]);
+  }, [setData, client, method, params]);
 
   return data;
 }
 
+function useGetFeedMetadata () {
+  const [params] = useState([{ wait: false, update: false }]);
+  return useRpcCall('getFeedsMetadata', params);
+}
+
 function Foo () {
-  const metadata = useFeedMetadata();
+  const metadata = useGetFeedMetadata();
   return (<code><pre>{ metadata.loading ? '...loading' : JSON.stringify(metadata.data, null, 2)}</pre></code>);
 }
 export default function Home () {
