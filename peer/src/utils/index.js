@@ -125,6 +125,7 @@ export function filterObj (filterFields, o) {
 //
 // NB we only access enter/func/exit at call time to allow them
 // to be added `obj` dynamically in then enter/func functions.
+// TODO this don't work
 export async function withContext (
   obj,
 ) {
