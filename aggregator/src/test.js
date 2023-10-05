@@ -1,25 +1,11 @@
 import test from 'ava';
-import { cp } from 'node:fs/promises';
 import { join } from 'node:path';
-import { Aggregator } from './index.js';
 import { withRpcClient, withTmpDir, withUpdatedWriter } from '../../peer/src/utils/tests.js';
 import { CHAPO, XKCD } from '../../peer/src/const.js';
 import { fileExists } from '../../peer/src/utils/index.js';
-import { AGGREGATOR_TEST_DATA } from './const.js';
+import { AGG_DATA_DIR_WITH_TWO_FEEDS } from './const.js';
 import { RpcServer } from './back.js';
-
-const withAggregator = async (aggArgs, func) => {
-  const aggregator = new Aggregator(...aggArgs);
-  await aggregator.init();
-  try {
-    const out = await func({ aggregator });
-    await aggregator.close();
-    return out;
-  } catch (e) {
-    await aggregator.close();
-    throw e;
-  }
-};
+import { withAggregator, withAggFromDisk } from './utils.js';
 
 test('Aggregator add multiple feeds', async (t) => {
   t.plan(4);
@@ -41,17 +27,6 @@ test('Aggregator add multiple feeds', async (t) => {
     });
   });
 });
-
-const AGG_DATA_DIR_WITH_TWO_FEEDS = 'agg_init';
-
-const withAggFromDisk = async (dataDir, func) => {
-  await withTmpDir(async tmpd => {
-    await cp(join(AGGREGATOR_TEST_DATA, dataDir), tmpd, { recursive: true });
-    return await withAggregator([{ storageName: tmpd }], async ({ aggregator }) => {
-      return await func({ tmpd, aggregator });
-    });
-  });
-};
 
 test('Aggregator init from storage directory', async (t) => {
   t.timeout(1e5);
