@@ -6,13 +6,13 @@ const URL = 'ws://localhost:8080';
 
 function useFeedMetadata () {
   const client = useApiClient();
-  const [data, setResult] = useState({ loading: true });
+  const [data, setData] = useState({ loading: true });
   useEffect(() => {
     (async () => {
       const result = await client.request('getFeedsMetadata', [{ wait: false, update: false }]);
-      setResult({ data: result });
+      setData({ data: result });
     })();
-  }, [setResult, client]);
+  }, [setData, client]);
 
   return data;
 }
