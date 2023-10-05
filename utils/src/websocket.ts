@@ -86,12 +86,7 @@ export class BaseWsConnection {
           return JSON.parse(data);
         } catch (e) {
           cancel();
-          log(`Error parsing message from instrument.
-  Message:
-    ${data}
-  Error:
-    ${e}
-  `);
+          console.error(e);
         }
       },
     });
