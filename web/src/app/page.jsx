@@ -20,7 +20,7 @@ function useGetFeedMetadata () {
   return useRpcCall('getFeedsMetadata', params);
 }
 
-function Foo () {
+function Feed () {
   const metadata = useGetFeedMetadata();
   return (<code><pre>{ metadata.loading ? '...loading' : JSON.stringify(metadata.data, null, 2)}</pre></code>);
 }
@@ -28,7 +28,7 @@ export default function Home () {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <ApiProvider>
-      <Foo/>
+      <Feed/>
       </ApiProvider>
     </main>
   );
