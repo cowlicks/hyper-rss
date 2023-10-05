@@ -1,23 +1,32 @@
-import Image from 'next/image';
-
-import WebSocket from 'isomorphic-ws';
-
-import { WebClient } from '@hrss/utils/dist/messages';
+'use client';
+import { ApiProvider, useApiClient } from '@/client';
+import { useEffect, useState } from 'react';
 
 const URL = 'ws://localhost:8080';
 
-async function yo (url) {
-  const c = WebClient.fromUrl(url);
-  const res = await c.request('getFeedsMetadata', [{ wait: false, update: false }]);
-  console.log(JSON.stringify(res, null, 2));
-  return 'foo';
+function useFeedMetadata () {
+  const client = useApiClient();
+  const [data, setResult] = useState({ loading: true });
+  useEffect(() => {
+    (async () => {
+      const result = await client.request('getFeedsMetadata', [{ wait: false, update: false }]);
+      setResult({ data: result });
+    })();
+  }, [setResult, client]);
+
+  return data;
 }
 
+function Foo () {
+  const metadata = useFeedMetadata();
+  return (<code><pre>{ metadata.loading ? '...loading' : JSON.stringify(metadata.data, null, 2)}</pre></code>);
+}
 export default function Home () {
-  setTimeout(() => yo(URL), 1000);
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-    Hello World
+      <ApiProvider>
+      <Foo/>
+      </ApiProvider>
     </main>
   );
 }
