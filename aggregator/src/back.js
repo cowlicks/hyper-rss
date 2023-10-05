@@ -128,12 +128,12 @@ Got error: ${e}`);
 
 export class Store {
   constructor (server = null, {
-    id = uuidv4(),
+    name = randName(),
   } = {}) {
     Object.assign(
       this,
       {
-        id,
+        name,
         server,
         clients: [],
         externalApi: {},
@@ -141,7 +141,7 @@ export class Store {
   }
 
   log (...s) {
-    console.log(`Store[${this.id}]`, ...s);
+    console.log(`Store[${this.name}]`, ...s);
   }
 
   broadcast (data) {
