@@ -1,4 +1,8 @@
 {
   "private": true,
+  "scripts": {
+      "web": "cd web && yarn dev",
+      "aggregator": "yarn node aggregator/src/bin/server.js"
+  },
   "workspaces": ["peer", "aggregator", "dev", "web", "utils"]
 }
