@@ -4,22 +4,21 @@ import { v4 as uuidv4 } from 'uuid';
 import express from 'express';
 import { RPC_ERROR_CODE_METHOD_NOT_FOUND } from '@hrss/utils/dist/config.js';
 import { Target } from '@hrss/utils/dist/target.js';
-import { log } from '@hrss/utils/dist/logging.js';
+import { log, LoggableMixin } from '@hrss/utils/dist/logging.js';
 import { clone } from '@hrss/utils/dist/index.js';
 import { startTiming } from '@hrss/utils/dist/performance.js';
 
 import { urlFromAddress } from '@hrss/peer/src/tools/mirror.js';
-import { randName } from '@hrss/peer/src/utils/index.js';
 
-export class RpcServer {
+export class RpcServer extends LoggableMixin {
   constructor () {
+    super();
     Object.assign(this, {
       wss: null,
       store: new Store(this),
       onClientClose: new Target(),
       onServerClose: new Target(),
       ranListenToClients: false,
-      name: randName(),
     });
   }
 
@@ -53,20 +52,16 @@ export class RpcServer {
     this.wss.on('close', this.onClientClose.dispatch.bind(this.onClientClose));
     return this;
   }
-
-  log (...x) {
-    console.log(`RpcServer[${this.name}]`, ...x);
-  }
 }
 
-export class ClientConnection {
-  constructor (ws, store, id = uuidv4()) {
+export class ClientConnection extends LoggableMixin {
+  constructor (ws, store) {
+    super();
     Object.assign(
       this,
       {
         ws,
         store,
-        id,
       });
     this.ws.on('message', (data) => this.onMessage(JSON.parse(data.toString())));
     this.ws.on('close', () => this.end());
@@ -120,28 +115,18 @@ export class ClientConnection {
 Got error: ${e}`);
     }
   }
-
-  log (...s) {
-    console.log(`Client[${this.id}]`, ...s);
-  }
 }
 
-export class Store {
-  constructor (server = null, {
-    name = randName(),
-  } = {}) {
+export class Store extends LoggableMixin {
+  constructor (server = null) {
+    super();
     Object.assign(
       this,
       {
-        name,
         server,
         clients: [],
         externalApi: {},
       });
-  }
-
-  log (...s) {
-    console.log(`Store[${this.name}]`, ...s);
   }
 
   broadcast (data) {
