@@ -1,24 +1,5 @@
 'use client';
-import { ApiProvider, useApiClient } from '@/client';
-import { useEffect, useState } from 'react';
-
-function useRpcCall (method, params) {
-  const client = useApiClient();
-  const [data, setData] = useState({ loading: true });
-  useEffect(() => {
-    (async () => {
-      const result = await client.request(method, params);
-      setData({ data: result });
-    })();
-  }, [setData, client, method, params]);
-
-  return data;
-}
-
-function useGetFeedsMetadata () {
-  const [params] = useState([{ wait: false, update: false }]);
-  return useRpcCall('getFeedsMetadata', params);
-}
+import { useGetFeedsMetadata } from '@/client';
 
 function Feeds () {
   const feedsMetadata = useGetFeedsMetadata();
@@ -54,9 +35,7 @@ function FeedAttributes ({ feedAttributes }) {
 export default function Home () {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <ApiProvider>
       <Feeds/>
-      </ApiProvider>
     </main>
   );
 }

@@ -1,3 +1,4 @@
+'use client';
 import { WebClient } from '@hrss/utils/dist/messages';
 import { createContext, useContext, useEffect, useState } from 'react';
 
@@ -19,6 +20,30 @@ export function ApiProvider ({ children }) {
       {children}
     </ApiContext.Provider>
   );
+}
+
+export function useRpcCall (method, params) {
+  console.log('from USE API CLIENT');
+  const client = useApiClient();
+  const [data, setData] = useState({ loading: true });
+  useEffect(() => {
+    (async () => {
+      const result = await client.request(method, params);
+      setData({ data: result });
+    })();
+  }, [setData, client, method, params]);
+
+  return data;
+}
+
+export function useGetFeedsMetadata () {
+  const [params] = useState([{ wait: false, update: false }]);
+  return useRpcCall('getFeedsMetadata', params);
+}
+
+export function useGetReaderFeed (id) {
+  const [params] = useState([id, { wait: false, update: false }]);
+  return useRpcCall('getReaderFeed', params);
 }
 
 export function useApiClient () {
