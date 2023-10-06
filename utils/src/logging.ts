@@ -48,10 +48,6 @@ function makeLog () {
   const logBook = new LogBook();
   const log = logBook.log.bind(logBook);
 
-  if (process?.env?.production || process?.env?.NODE_ENV === 'test') {
-    logBook.print = false;
-  }
-
   log.onLog = (f) => logBook.onLog.addListener(f);
 
   return { logBook, log };
@@ -59,22 +55,47 @@ function makeLog () {
 
 export const { log, logBook } = makeLog();
 
-export const DEBUG_LOG_LEVEL = 5;
-export const INFO_LOG_LEVEL = 4;
+const TRACE = 0,
+  DEBUG = 1,
+  INFO = 2,
+  WARN = 3,
+  ERROR = 4;
 
 export const LOG_LEVELS = {
-  INFO: INFO_LOG_LEVEL,
-  DEBUG: DEBUG_LOG_LEVEL,
+  TRACE,
+  DEBUG,
+  INFO,
+  WARN,
+  ERROR,
 };
 
 log.debug = (...args) => {
-  if (config.LOG_LEVEL >= DEBUG_LOG_LEVEL) {
+  if (config.LOG_LEVEL <= DEBUG) {
     log(...args);
   }
 };
 log.info = (...args) => {
-  if (config.LOG_LEVEL >= INFO_LOG_LEVEL) {
+  if (config.LOG_LEVEL <= INFO) {
     log(...args);
   }
 };
 log.error = console.error;
+
+const alph = 'abcdefghijklmnopqrstuvwxyz';
+
+export const randName = (len = 6) => {
+  return new Array(len).fill(0).map(() => alph[Math.floor(Math.random() * 26)]).join('');
+};
+
+export class LoggableMixin {
+  name: string;
+  extraPrefix?: string;
+
+  constructor ({ name = randName() } = {}) {
+    Object.assign(this, { name });
+  }
+
+  log (...x) {
+    log.info(`${this.constructor.name}[${this.name}]${this.extraPrefix ?? ''}`, ...x);
+  }
+}
