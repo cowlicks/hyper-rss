@@ -64,8 +64,8 @@ export class Aggregator {
     this.readers.set(discoveryKeyString, reader);
   }
 
-  getReaderFeed (discoveryKeyString) {
-    return this._getReader(discoveryKeyString).getFeed();
+  getReaderFeed (discoveryKeyString, options) {
+    return this._getReader(discoveryKeyString).getFeed(options);
   }
 
   getReaderMetadata (discoveryKeyString) {

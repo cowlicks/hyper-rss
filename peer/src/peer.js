@@ -57,8 +57,8 @@ export class Peer {
     return await this.bTrees.feed.getMetadata(options);
   }
 
-  async getFeed () {
-    return await takeAll(this.bTrees.feed.getFeedStream());
+  async getFeed (options) {
+    return await takeAll(this.bTrees.feed.getFeedStream(options));
   }
 
   async close () {
