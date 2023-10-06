@@ -130,3 +130,29 @@ export function shallowCopy (x) {
   if (Array.isArray(x)) return [...x];
   return { ...x };
 }
+
+type SortableObject = {[key: string]: unknown};
+
+function isSortableObject (x: unknown): x is SortableObject {
+  return (x instanceof Object && !(x instanceof Array));
+}
+
+export function sortObject (obj: {[key: string]: unknown}): SortableObject {
+  return (Object.keys(obj)
+    .sort()
+    .reduce((sorted, key) => {
+      sorted[key] = obj[key];
+      return sorted;
+    }, {}));
+}
+
+function stableStringifyReplacer<T> (x: T) {
+  if (isSortableObject(x)) {
+    return sortObject(x);
+  }
+  return x;
+}
+
+export function stableStringify (x: unknown, space?: string|number): string {
+  return JSON.stringify(x, stableStringifyReplacer, space);
+}
