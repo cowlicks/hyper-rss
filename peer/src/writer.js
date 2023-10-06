@@ -3,7 +3,7 @@ import Parser from 'rss-parser';
 import Corestore from 'corestore';
 
 import { encodedStrFromBuffer, readJsonFile, writeJsonFile } from './utils/index.js';
-import { log } from './log.js';
+import { log } from '@hrss/utils';
 import { handleItem, itemsNotHyperized } from './items.js';
 import { swarmInit } from './swarm.js';
 import { Peer } from './peer.js';

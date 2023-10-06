@@ -10,6 +10,22 @@ import { getStore, getStoreAndCores, Writer } from './writer.js';
 import { retry } from './utils/async.js';
 import { withRssServer, download, mutateRss, jsonFromXml, xmlFromJson } from './tools/mirror.js';
 import { CHAPO, TEST_URLS, XKCD } from './const.js';
+import { Peer } from './peer.js';
+import { logBook } from '@hrss/utils';
+
+test('Test peer logging mixin', async (t) => {
+  const logString = 'my test log msg';
+  const kind = 'FOO KIND';
+
+  const p = new Peer(kind);
+  p.log(logString);
+
+  const lastEntry = [...logBook.values()].pop().join('');
+  t.assert(lastEntry.match('Peer'));
+  t.assert(lastEntry.match(p.name));
+  t.assert(lastEntry.match(kind));
+  t.assert(lastEntry.match(logString));
+});
 
 // does orig str equal dbl parsed?
 test('Test parse RSS feed and turn it back into the same XML', async t => {

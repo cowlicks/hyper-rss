@@ -1,20 +1,16 @@
 import { OrderedHyperbee } from './feed.js';
 import { KeyedBlobs } from './blobs.js';
 import { takeAll } from './utils/async.js';
-import { randName } from './utils/index.js';
-import { log } from './log.js';
+import { LoggableMixin } from '@hrss/utils';
 
 // The base for reader's and writer's
-export class Peer {
+export class Peer extends LoggableMixin {
   constructor (peerKind) {
+    super();
     Object.assign(this, {
+      extraPrefix: `[${peerKind}]`,
       peerKind,
-      name: randName(),
     });
-  }
-
-  get log () {
-    return (...x) => log.info(`Peer[${this.peerKind}][${this.name}]`, ...x);
   }
 
   async ready ({ keys, feed, blobKeys, blobs }) {
