@@ -28,9 +28,11 @@ import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { listDirectories } from './utils.js';
 import { fileExists } from '../../peer/src/utils/index.js';
+import { LoggableMixin } from '@hrss/utils';
 
-export class Aggregator {
+export class Aggregator extends LoggableMixin {
   constructor ({ storageName = './aggregator-storage' } = {}) {
+    super();
     Object.assign(
       this,
       {
