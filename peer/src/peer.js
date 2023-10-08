@@ -4,12 +4,11 @@ import { takeAll } from './utils/async.js';
 import { LoggableMixin } from '@hrss/utils';
 
 // The base for reader's and writer's
-export class Peer extends LoggableMixin {
+export const Peer = LoggableMixin(class Peer {
   constructor (peerKind) {
-    super();
     Object.assign(this, {
-      extraPrefix: `[${peerKind}]`,
       peerKind,
+      extraPrefix: `[${peerKind}]`,
     });
   }
 
@@ -69,4 +68,4 @@ export class Peer extends LoggableMixin {
       this.keyedBlobs.close(),
     ]);
   }
-}
+});

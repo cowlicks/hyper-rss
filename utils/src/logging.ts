@@ -87,15 +87,24 @@ export const randName = (len = 6) => {
   return new Array(len).fill(0).map(() => alph[Math.floor(Math.random() * 26)]).join('');
 };
 
-export class LoggableMixin {
-  name: string;
-  extraPrefix?: string;
+// eslint-disable-next-line @typescript-eslint/ban-types
+type Constructor = new (...args: any[]) => {};
 
-  constructor ({ name = randName() } = {}) {
-    Object.assign(this, { name });
-  }
+export function LoggableMixin<TBase extends Constructor> (Base: TBase) {
+  return class Loggable extends Base {
+    name = randName();
+    baseName = Base.name;
 
-  log (...x) {
-    log.info(`${this.constructor.name}[${this.name}]${this.extraPrefix ?? ''}`, ...x);
-  }
+    // Declaring this causes the value set in the base
+    // class's constructor to be removed. See how we have
+    // to disable ts in the log function to work around
+    // this.
+    // extraPrefix?: string;
+
+    log (...x: unknown[]) {
+      this.name ??= randName();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      log.info(`${this.baseName}[${this.name}]${(this as any).extraPrefix ?? ''}`, ...x);
+    }
+  };
 }

@@ -9,9 +9,8 @@ import { startTiming } from '@hrss/utils/dist/performance.js';
 
 import { urlFromAddress } from '@hrss/peer/src/tools/mirror.js';
 
-export class RpcServer extends LoggableMixin {
+export const RpcServer = LoggableMixin(class RpcServer {
   constructor () {
-    super();
     Object.assign(this, {
       wss: null,
       store: new Store(this),
@@ -51,11 +50,10 @@ export class RpcServer extends LoggableMixin {
     this.wss.on('close', this.onClientClose.dispatch.bind(this.onClientClose));
     return this;
   }
-}
+});
 
-export class ClientConnection extends LoggableMixin {
+export const ClientConnection = LoggableMixin(class ClientConnection {
   constructor (ws, store) {
-    super();
     Object.assign(
       this,
       {
@@ -114,11 +112,10 @@ export class ClientConnection extends LoggableMixin {
 Got error: ${e}`);
     }
   }
-}
+});
 
-export class Store extends LoggableMixin {
+export const Store = LoggableMixin(class Store {
   constructor (server = null) {
-    super();
     Object.assign(
       this,
       {
@@ -143,4 +140,4 @@ export class Store extends LoggableMixin {
     );
     this.log(`Removed Client.id [${client.id}]`);
   }
-}
+});

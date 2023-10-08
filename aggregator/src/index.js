@@ -30,9 +30,8 @@ import { listDirectories } from './utils.js';
 import { fileExists } from '../../peer/src/utils/index.js';
 import { LoggableMixin } from '@hrss/utils';
 
-export class Aggregator extends LoggableMixin {
+export const Aggregator = LoggableMixin(class Aggregator {
   constructor ({ storageName = './aggregator-storage' } = {}) {
-    super();
     Object.assign(
       this,
       {
@@ -98,4 +97,4 @@ export class Aggregator extends LoggableMixin {
       }),
     );
   }
-}
+});
