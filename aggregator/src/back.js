@@ -1,5 +1,4 @@
 import WebSocket from 'ws';
-import { v4 as uuidv4 } from 'uuid';
 
 import express from 'express';
 import { RPC_ERROR_CODE_METHOD_NOT_FOUND } from '@hrss/utils/dist/config.js';

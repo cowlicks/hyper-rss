@@ -23,7 +23,6 @@ export function ApiProvider ({ children }) {
 }
 
 export function useRpcCall (method, params) {
-  console.log('from USE API CLIENT');
   const client = useApiClient();
   const [data, setData] = useState({ loading: true });
   useEffect(() => {
