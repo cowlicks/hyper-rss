@@ -27,7 +27,7 @@ export async function downloadAndHash (url, {
   return { buffer, hash };
 }
 
-export async function downloadAndCreateFilename (url, { ...options }) {
+export async function downloadAndCreateFilename (url, { ...options } = {}) {
   const { buffer, hash } = await downloadAndHash(url, { ...options });
   const parts = url.split('.');
   const extension = parts[parts.length - 1];

@@ -13,6 +13,14 @@ export const TEST_URLS = {
   [SKEPTOID]: 'https://feed.skeptoid.com/',
 };
 
+const MIRROR_NAMES = new Set([XKCD, CHAPO, SKEPTOID]);
+export const MIRROR_URLS = {
+  ...(Object.fromEntries([...MIRROR_NAMES]
+    .filter(name => MIRROR_NAMES.has(name))
+    .map(name => [name, TEST_URLS[name]]))
+  ),
+};
+
 export const DOWNLOAD_DIR_NAME = 'downloads';
 export const MIRRORED_DIR_NAME = 'mirrors';
 export const PROCESS_SCRIPTS_DIR_NAME = 'processScripts';

@@ -7,7 +7,7 @@ import { parseString, Builder } from 'xml2js';
 
 import { writeFile, renameFields, filterObj, orderObj, downloadToBuffer } from '../utils/index.js';
 import { withTmpDir } from '../utils/tests.js';
-import { DOWNLOAD_DIR, MIRRORED_DIR } from '../const.js';
+import { DOWNLOAD_DIR, MIRRORED_DIR, TEST_URLS } from '../const.js';
 
 import { print } from '../dev.js';
 import { downloadAndCreateFilename, itemEnclosureHandler, itemImgHandler } from '../items.js';
@@ -143,7 +143,7 @@ function createLocalFilePathAndLocalUrl (url, fileName, {
 
 export async function downloadUrlAndCreateLocalUrl (url, { ...options } = {}) {
   console.log(`Downloading URL: ${url}`);
-  const { buffer, fileName } = downloadAndCreateFilename(url);
+  const { buffer, fileName } = await downloadAndCreateFilename(url);
 
   const { localUrl, filePath } = createLocalFilePathAndLocalUrl(url, fileName, { ...options });
 
@@ -236,4 +236,13 @@ ${url.href}
     await (new Promise(resolve => server.close(resolve)));
   },
   (pref) => `${pref}tmp-rss-feed`);
+}
+
+const DEFAULT_MAX_RSS_ITEMS_TO_MIRROR = 5;
+
+export async function mirrorNamedRss (name, maxItems = DEFAULT_MAX_RSS_ITEMS_TO_MIRROR) {
+  const url = TEST_URLS[name];
+  console.log(`Creating a mirror of RSS feed for [${name}] from [${url}]`);
+  const pathPrefix = join(MIRRORED_DIR, name);
+  await saveRssToDiskFromUrl(url, { pathPrefix, maxItems });
 }
