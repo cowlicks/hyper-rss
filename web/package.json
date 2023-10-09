@@ -12,6 +12,7 @@
     "@hrss/peer": "1.0.0",
     "@hrss/utils": "1.0.0",
     "cross-env": "^7.0.3",
+    "dompurify": "^3.0.6",
     "isomorphic-ws": "^5.0.0",
     "next": "latest",
     "react": "latest",
