@@ -87,7 +87,7 @@ export const randName = (len = 6) => {
   return new Array(len).fill(0).map(() => alph[Math.floor(Math.random() * 26)]).join('');
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Constructor = new (...args: any[]) => {};
 
 export function LoggableMixin<TBase extends Constructor> (Base: TBase) {
