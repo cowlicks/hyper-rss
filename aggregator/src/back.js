@@ -138,6 +138,6 @@ export const Store = LoggableMixin(class Store {
       this.clients.findIndex(({ id }) => id === client.id),
       1,
     );
-    this.log(`Removed Client.id [${client.id}]`);
+    this.log(`Removed Client[${client.name}]`);
   }
 });
