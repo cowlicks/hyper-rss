@@ -1,4 +1,5 @@
 'use client';
+import { isNullish } from '@hrss/utils';
 import { WebClient } from '@hrss/utils/dist/messages';
 import { createContext, useContext, useEffect, useState } from 'react';
 
@@ -27,8 +28,11 @@ export function useRpcCall (method, params) {
   const [data, setData] = useState({ loading: true });
   useEffect(() => {
     (async () => {
-      const result = await client.request(method, params);
-      setData({ data: result });
+      const { result, error } = await client.request(method, params);
+      setData({
+        ...(result !== undefined && { data: result }),
+        ...(error !== undefined && { error }),
+      });
     })();
   }, [setData, client, method, params]);
 
