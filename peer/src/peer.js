@@ -56,6 +56,14 @@ export const Peer = LoggableMixin(class Peer {
     return await takeAll(this.bTrees.feed.getFeedStream(options));
   }
 
+  async getBlob (key, options = {}) {
+    return await this.keyedBlobs.get(key, { ...options });
+  }
+
+  async getKeysAndBlobs (options = {}) {
+    return await this.keyedBlobs.getKeysAndBlobs({ ...options });
+  }
+
   async close () {
     await Promise.all([
       this.swarm.destroy(),

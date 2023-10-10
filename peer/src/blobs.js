@@ -2,8 +2,11 @@ import Hyperbee from 'hyperbee';
 import Hyperblobs from 'hyperblobs';
 import { storeNames } from './writer.js';
 import { takeAll } from './utils/async.js';
+import { LoggableMixin } from '@hrss/utils';
 
-export class KeyedBlobs {
+const idFromGetKeyResult = ({ value }) => JSON.parse(value.toString());
+
+export const KeyedBlobs = LoggableMixin(class KeyedBlobs {
   static fromStore (store, { ...rest } = {}) {
     const { blobKeys: blobKeysName, blobs: blobsName } = storeNames({ ...rest });
     const blobKeys = store.get({ name: blobKeysName });
@@ -62,10 +65,17 @@ export class KeyedBlobs {
     return takeAll(this.keyStream());
   }
 
-  async get (key, { blobsOpts, beeOpts } = {}) {
-    const { seq: _, value: rawValue } = await this.keys.get(key, beeOpts);
-    const id = JSON.parse(rawValue.toString());
+  async getKeysAndBlobs ({ beeOpts = {}, blobsOpts = {} } = {}) {
+    const keys = await this.getKeys();
+    const keysToIds = keys.map(key => [key, idFromGetKeyResult(key, { ...beeOpts })]);
+    return Promise.all(
+      keysToIds.map(async ([key, id]) => [key, await this.blobs.get(id, { ...blobsOpts })]),
+    );
+  }
+
+  async get (key, { beeOpts = {}, blobsOpts = {} } = {}) {
+    const id = idFromGetKeyResult(await this.keys.get(key, beeOpts));
     const blob = await this.blobs.get(id, blobsOpts);
     return blob;
   }
-}
+});
