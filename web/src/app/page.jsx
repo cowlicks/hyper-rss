@@ -21,7 +21,7 @@ function Feed ({ metadata }) {
 }
 
 function DiscoveryKey ({ discoveryKey }) {
-  return (<a href={`feed/${discoveryKey}`} className="DiscoveryKey">{discoveryKey}</a>);
+  return (<a href={`feed/${discoveryKey}/`} className="DiscoveryKey">{discoveryKey}</a>);
 }
 
 function FeedAttributes ({ feedAttributes }) {
