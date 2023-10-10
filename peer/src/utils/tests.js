@@ -8,6 +8,7 @@ import { Writer } from '../writer.js';
 import { getOnExit } from './index.js';
 import { AsyncQueue, Deferred } from '@hrss/utils';
 import { withProcess } from './process.js';
+import { Reader } from '../reader.js';
 
 const TMP_DIR_PREFIX = 'hrss-test-';
 
@@ -88,5 +89,18 @@ export async function withRpcClient (url, func) {
     };
     const sender = (method, params = []) => proc.send({ kind: SEND_CLIENT_MESSAGE, method, params });
     return await func({ proc, messages, sender, close });
+  });
+}
+
+export async function withReader (discoveryKey, testFunc) {
+  await withTmpDir(async (storageName) => {
+    const reader = new Reader(discoveryKey);
+    await reader.init({ storageName });
+    await reader.bTrees.feed.update({ wait: true });
+    try {
+      await testFunc(reader);
+    } finally {
+      await reader.close();
+    }
   });
 }

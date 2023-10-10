@@ -1,6 +1,5 @@
 import { KeyedBlobs } from './blobs.js';
-import { Reader } from './reader.js';
-import { withTmpDir, withUpdatedWriter, withTmpWriter } from './utils/tests.js';
+import { withTmpDir, withUpdatedWriter, withTmpWriter, withReader } from './utils/tests.js';
 import { join } from 'node:path';
 import { stat } from 'node:fs/promises';
 
@@ -69,19 +68,6 @@ test('test new Writer saves config and loading from it does not change it', asyn
     t.pass();
   });
 });
-
-async function withReader (discoveryKey, testFunc) {
-  await withTmpDir(async (storageName) => {
-    const reader = new Reader(discoveryKey);
-    await reader.init({ storageName });
-    await reader.bTrees.feed.update({ wait: true });
-    try {
-      await testFunc(reader);
-    } finally {
-      await reader.close();
-    }
-  });
-}
 
 test('Smoke test read write XKCD',
   async (t) => {
