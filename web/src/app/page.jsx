@@ -3,7 +3,7 @@ import { useGetFeedsMetadata } from '@/client';
 
 function Feeds () {
   const feedsMetadata = useGetFeedsMetadata();
-  return (<code><pre>{ feedsMetadata.loading ? '...loading' : feedsMetadata.data.map(x => (<Feed key={x[0]} metadata={x} />))}</pre></code>);
+  return (<code>{ feedsMetadata.loading ? '...loading' : feedsMetadata.data.map(x => (<Feed key={x[0]} metadata={x} />))}</code>);
 }
 
 function Feed ({ metadata }) {
