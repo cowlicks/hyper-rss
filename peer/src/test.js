@@ -41,7 +41,8 @@ test('Test parse RSS feed and turn it back into the same XML', async t => {
   });
 });
 
-test('test new Writer saves config and loading from it does not change it', async t => {
+// TODO change this test to make it run locally
+test('Test new Writer saves config and loading from it does not change it', async t => {
   await withTmpDir(async dir => {
     const configFileName = join(dir, 'config.json');
 
@@ -71,7 +72,7 @@ test('test new Writer saves config and loading from it does not change it', asyn
 
 test('Smoke test read write XKCD',
   async (t) => {
-    t.timeout(1e3 * 100);
+    t.timeout(1e3 * 20);
     const nBlobs = 4,
       nFeedItems = 4;
     await withUpdatedWriter(XKCD, async (writer) => {
@@ -88,7 +89,7 @@ test('Smoke test read write XKCD',
 
 test('Smoke test read write CHAPO',
   async (t) => {
-    t.timeout(1e3 * 100);
+    t.timeout(1e3 * 20);
     const nBlobs = 5,
       nFeedItems = 5;
     await withUpdatedWriter(CHAPO, async (writer) => {
