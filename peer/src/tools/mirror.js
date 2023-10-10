@@ -127,7 +127,7 @@ export async function mutateRss (rssXmlStr, func) {
   return xmlFromJson(rssStyleJson);
 }
 
-function createLocalFilePathAndLocalUrl (url, fileName, {
+function createLocalFilePathAndLocalUrl (fileName, {
   fileDirectory = DEFAULT_FILE_DIRECTORY,
   pathPrefix = DEFAULT_PATH_PREFIX,
   origin = DEFAULT_LOCAL_ORIGIN,
@@ -145,7 +145,7 @@ export async function downloadUrlAndCreateLocalUrl (url, { ...options } = {}) {
   console.log(`Downloading URL: ${url}`);
   const { buffer, fileName } = await downloadAndCreateFilename(url);
 
-  const { localUrl, filePath } = createLocalFilePathAndLocalUrl(url, fileName, { ...options });
+  const { localUrl, filePath } = createLocalFilePathAndLocalUrl(fileName, { ...options });
 
   console.log(`Saving URL [${url}] to [${filePath}]`);
   await writeFile(filePath, buffer, { createDir: true });
