@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { withRpcClient, withTmpDir, withUpdatedWriter } from '../../peer/src/utils/tests.js';
 import { CHAPO, XKCD } from '../../peer/src/const.js';
 import { fileExists } from '../../peer/src/utils/index.js';
-import { AGG_DATA_DIR_WITH_TWO_FEEDS } from './const.js';
+import { AGGREGATOR_TEST_FOO_STORAGE } from './const.js';
 import { RpcServer } from './back.js';
 import { withAggregator, withAggFromDisk } from './utils.js';
 
@@ -31,7 +31,7 @@ test('Aggregator add multiple feeds', async (t) => {
 test('Aggregator init from storage directory', async (t) => {
   t.timeout(1e5);
   t.plan(1);
-  await withAggFromDisk(AGG_DATA_DIR_WITH_TWO_FEEDS, async ({ aggregator }) => {
+  await withAggFromDisk(AGGREGATOR_TEST_FOO_STORAGE, async ({ aggregator }) => {
     t.is((await aggregator.getFeedsMetadata()).length, 2);
   });
 });
@@ -39,7 +39,7 @@ test('Aggregator init from storage directory', async (t) => {
 test('Aggregator with RpcServer', async (t) => {
   t.timeout(1e5);
   t.plan(1);
-  await withAggFromDisk(AGG_DATA_DIR_WITH_TWO_FEEDS, async ({ aggregator }) => {
+  await withAggFromDisk(AGGREGATOR_TEST_FOO_STORAGE, async ({ aggregator }) => {
     const server = new RpcServer();
     server.store.externalApi = aggregator;
     await server.listenToClients();
