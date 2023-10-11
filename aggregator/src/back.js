@@ -24,12 +24,15 @@ export const RpcServer = LoggableMixin(class RpcServer {
     return await this.onServerClose.dispatch();
   }
 
-  async listenToClients ({ port } = {}) {
+  async listenToClients ({ port, app = express(), externalApi } = {}) {
     if (this.ranListenToClients) return;
+
+    if (externalApi) {
+      this.store.externalApi = externalApi;
+    }
 
     this.ranListenToClients = true;
 
-    const app = express();
     const server = await new Promise(resolve => {
       const out = app.listen(port, () => {
         resolve(out);
@@ -121,7 +124,7 @@ export const Store = LoggableMixin(class Store {
       {
         server,
         clients: [],
-        externalApi: {},
+        externalApi: null,
       });
   }
 
@@ -141,3 +144,14 @@ export const Store = LoggableMixin(class Store {
     this.log(`Removed Client[${client.name}]`);
   }
 });
+
+export class Server extends RpcServer {
+  async listenToClients ({ port, app = express(), aggregator } = {}) {
+    app.get('/:feed/:blob', async (req, res) => {
+      const result = await aggregator.getReaderBlob(req.params.feed, req.params.blob, { beeOpts: { wait: false, update: false } });
+      res.send(result);
+    });
+
+    return super.listenToClients({ port, app, externalApi: aggregator });
+  }
+}
