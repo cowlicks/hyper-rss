@@ -1,3 +1,5 @@
+const DEFAULT_CACHE_SIZE = 1e3;
+
 export class FifoMap extends Map {
   maxSize: number;
 
@@ -12,6 +14,35 @@ export class FifoMap extends Map {
       this.delete(this.keys().next().value);
     }
     return this;
+  }
+}
+
+/* Least Recently Used Cache
+ * here "used" is just `.get`
+ */
+export class LruMap extends Map {
+  maxSize: number;
+
+  constructor ({ maxSize = DEFAULT_CACHE_SIZE }) {
+    super();
+    Object.assign(this, { maxSize });
+  }
+
+  set (key, val) {
+    super.set(key, val);
+    if (this.size > this.maxSize) {
+      this.delete(this.keys().next().value);
+    }
+    return this;
+  }
+
+  get (key) {
+    const out = super.get(key);
+    const had = this.delete(key);
+    if (had) {
+      this.set(key, out);
+    }
+    return out;
   }
 }
 
