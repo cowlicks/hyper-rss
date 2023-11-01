@@ -27,8 +27,7 @@ export class ApiCache {
   getCached ([name, params]) {
     if (!this.funcs.has(name)) {
       // maybe this behaviour could be configed by a callback
-      // TODO handle missing func behavior
-      throw new Error('TODO');
+      throw new Error(`This function is not cached! name: [${name}] params: [${params}]`);
     }
 
     const [hash, func] = this.funcs.get(name);
@@ -42,19 +41,22 @@ export class ApiCache {
   }
 
   // TODO add sync and async versions
-  async aget ([name, params]) {
+  get ([name, params]) {
     if (!this.funcs.has(name)) {
-      // TODO handle missing func behavior
-      return;
+      throw new Error(`This function is not cached! name: [${name}] params: [${params}]`);
     }
     const { cached, value, key, func } = this.getCached([name, params]);
     if (cached) {
       return value;
     }
     // TODO handle error if this errrrs
-    const result = await func(...params);
+    const result = func(...params);
     this.cache.set(key, result);
     return result;
+  }
+
+  addFunction (name, func, { hasher = DEFAULT_CACHE_HASH } = {}) {
+    this.funcs.set(name, [hasher, func]);
   }
 
   invalidate (regex) {
@@ -65,4 +67,23 @@ export class ApiCache {
         return match;
       }));
   }
+}
+
+export function cacheMethodOnObject (cache, object, methodName, { hasher = DEFAULT_CACHE_HASH } = {}) {
+  const func = object[methodName].bind(object);
+  cache.addFunction(methodName, func, { hasher });
+  const cachedFunc = (...params) => cache.get([methodName, params]);
+  object[methodName] = cachedFunc;
+}
+
+export function addInvalidationOnObjectMethod (cache, object, methodName, makeRegex) {
+  const func = object[methodName].bind(object);
+
+  const funcWithInvalidation = (...params) => {
+    const regex = makeRegex(params);
+    // Should we do this before or after we call the func?
+    cache.invalidate(regex);
+    return func(...params);
+  };
+  object[methodName] = funcWithInvalidation;
 }

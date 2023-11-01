@@ -29,8 +29,36 @@ import { join } from 'node:path';
 import { listDirectories } from './utils.js';
 import { fileExists } from '../../peer/src/utils/index.js';
 import { LoggableMixin } from '@hrss/utils';
+import { addInvalidationOnObjectMethod, ApiCache, cacheMethodOnObject } from './cache.js';
+
+const CACHEABLE = [
+  { methodName: '_getReader' },
+  { methodName: 'getReaderFeed' },
+  { methodName: 'getReaderMetadata' },
+  { methodName: 'getReaderBlob' },
+];
+
+const invalidateBasedOnDiscoveryKey = (discoveryKeyString) => new RegExp(discoveryKeyString);
+
+const CACHE_INVALIDATES = [
+  { methodName: '_removeReader', makeRegex: invalidateBasedOnDiscoveryKey },
+  { methodName: 'addReader', makeRegex: invalidateBasedOnDiscoveryKey },
+  { methodName: 'updateReader', makeRegex: invalidateBasedOnDiscoveryKey },
+  { methodName: 'stopReader', makeRegex: () => /.*?/ },
+  { methodName: 'init', makeRegex: () => /.*?/ },
+];
 
 export const Aggregator = LoggableMixin(class Aggregator {
+  static cacheMethods (instance, cache = new ApiCache()) {
+    for (const { methodName } of CACHEABLE) {
+      cacheMethodOnObject(cache, instance, methodName);
+    }
+
+    for (const { methodName, makeRegex } of CACHE_INVALIDATES) {
+      addInvalidationOnObjectMethod(cache, instance, methodName, makeRegex);
+    }
+  }
+
   constructor ({ storageName = './aggregator-storage' } = {}) {
     Object.assign(
       this,
