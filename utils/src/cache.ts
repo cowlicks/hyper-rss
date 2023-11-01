@@ -23,7 +23,7 @@ export class FifoMap extends Map {
 export class LruMap extends Map {
   maxSize: number;
 
-  constructor ({ maxSize = DEFAULT_CACHE_SIZE }) {
+  constructor ({ maxSize = DEFAULT_CACHE_SIZE } = {}) {
     super();
     Object.assign(this, { maxSize });
   }

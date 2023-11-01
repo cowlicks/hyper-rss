@@ -146,11 +146,11 @@ export function sortObject (obj: {[key: string]: unknown}): SortableObject {
     }, {}));
 }
 
-function stableStringifyReplacer<T> (x: T) {
-  if (isSortableObject(x)) {
-    return sortObject(x);
+function stableStringifyReplacer<T> (_key: string, value: T) {
+  if (isSortableObject(value)) {
+    return sortObject(value);
   }
-  return x;
+  return value;
 }
 
 export function stableStringify (x: unknown, space?: string|number): string {
