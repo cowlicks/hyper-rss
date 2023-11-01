@@ -32,7 +32,6 @@ import { LoggableMixin } from '@hrss/utils';
 import { addInvalidationOnObjectMethod, ApiCache, cacheMethodOnObject } from './cache.js';
 
 const CACHEABLE = [
-  { methodName: '_getReader' },
   { methodName: 'getReaderFeed' },
   { methodName: 'getReaderMetadata' },
   { methodName: 'getReaderBlob' },

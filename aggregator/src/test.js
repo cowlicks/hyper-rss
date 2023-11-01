@@ -8,6 +8,7 @@ import { AGGREGATOR_TEST_FOO_STORAGE } from './const.js';
 import { RpcServer } from './back.js';
 import { withAggregator, withAggFromDisk } from './utils.js';
 import { LruMap, stableStringify } from '@hrss/utils';
+import { Aggregator } from './index.js';
 
 test('Aggregator add multiple feeds', async (t) => {
   t.plan(4);
@@ -30,11 +31,28 @@ test('Aggregator add multiple feeds', async (t) => {
   });
 });
 
+const N_FOO_STORAGE_FEEDS = 3;
+const p = (x) => [console.log(x), x][1];
 test('Aggregator init from storage directory', async (t) => {
   t.timeout(1e5);
   t.plan(1);
   await withAggFromDisk(AGGREGATOR_TEST_FOO_STORAGE, async ({ aggregator }) => {
-    t.is((await aggregator.getFeedsMetadata()).length, 2);
+    const x = await aggregator.getFeedsMetadata();
+    p(x);
+    t.is((await aggregator.getFeedsMetadata()).length, N_FOO_STORAGE_FEEDS);
+  });
+});
+
+test('Aggregator with cache', async (t) => {
+  t.timeout(1e5);
+  t.plan(2);
+  await withAggFromDisk(AGGREGATOR_TEST_FOO_STORAGE, async ({ aggregator }) => {
+    const [[firstKey]] = await aggregator.getFeedsMetadata();
+    const cache = new ApiCache();
+    Aggregator.cacheMethods(aggregator, cache);
+    t.is(cache.cache.size, 0);
+    await aggregator.getReaderFeed(firstKey);
+    t.is(cache.cache.size, 1);
   });
 });
 
@@ -51,7 +69,7 @@ test('Aggregator with RpcServer', async (t) => {
       await sender('getFeedsMetadata', []);
       const clintMsg = (await aiter.next()).value;
       try {
-        t.is(clintMsg?.response.result?.length, 2);
+        t.is(clintMsg?.response.result?.length, N_FOO_STORAGE_FEEDS);
       } finally {
         await close();
       }
@@ -155,7 +173,7 @@ test('ApiCache', async (t) => {
   const apiCache = new ApiCache({ funcs });
   t.false(apiCache.getCached(['f1', [6]]).cached);
 
-  const result = await apiCache.aget(['f1', [6]]);
+  const result = await apiCache.get(['f1', [6]]);
   t.is(result, 8);
 
   const { cached, value } = apiCache.getCached(['f1', [6]]);
@@ -174,7 +192,7 @@ test('ApiCache', async (t) => {
 
   apiCache.funcs.set(f2.name, [DEFAULT_CACHE_HASH, f2]);
 
-  const r2 = await apiCache.aget([f2.name, ['foo']]);
+  const r2 = await apiCache.get([f2.name, ['foo']]);
   t.is(r2, 'foobar');
-  t.is(await apiCache.aget([f2.name, ['foo']]), 'foobar');
+  t.is(await apiCache.get([f2.name, ['foo']]), 'foobar');
 });
