@@ -6,7 +6,7 @@ import { withAggFromDisk } from '../utils.js';
 
 const PORT = 8080;
 
-process.title = 'aggregator';
+process.title = 'node:hrss:aggregator';
 
 (async () => {
   await withAggFromDisk(AGGREGATOR_TEST_FOO_STORAGE, async ({ aggregator }) => {
