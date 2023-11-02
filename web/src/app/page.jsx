@@ -3,13 +3,13 @@ import { useGetFeedsMetadata } from '@/client';
 
 function Feeds () {
   const feedsMetadata = useGetFeedsMetadata();
-  return (<code>{ feedsMetadata.loading ? '...loading' : feedsMetadata.data.map(x => (<Feed key={x[0]} metadata={x} />))}</code>);
+  return (<code>{ feedsMetadata.loading ? '...loading' : feedsMetadata.data.map(x => (<FeedOuter key={x[0]} metadata={x} />))}</code>);
 }
 
-function Feed ({ metadata }) {
+function FeedOuter ({ metadata }) {
   const [discoveryKey, feedAttributes] = metadata;
   return (
-      <div className="Feed">
+      <div className="FeedOuter">
         <div className="Feed__DiscoveryKey">
           <DiscoveryKey {...{ discoveryKey }} />
         </div>
