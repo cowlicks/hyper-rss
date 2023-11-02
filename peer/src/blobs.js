@@ -75,8 +75,18 @@ export const KeyedBlobs = LoggableMixin(class KeyedBlobs {
 
   async get (key, { beeOpts = {}, blobsOpts = {} } = {}) {
     this.log(`Get blob with key [${key}]`);
-    const id = idFromGetKeyResult(await this.keys.get(key, beeOpts));
+    const id = await this.getId(key, { beeOpts });
     const blob = await this.blobs.get(id, blobsOpts);
+    return blob;
+  }
+
+  async getId (key, { beeOpts = {} } = {}) {
+    return idFromGetKeyResult(await this.keys.get(key, beeOpts));
+  }
+
+  async getRange (id, { start, end }, { blobsOpts = {} } = {}) {
+    this.log(`Get blob with ID [${id}]`);
+    const blob = await this.blobs.get(id, { ...blobsOpts, start, end });
     return blob;
   }
 });

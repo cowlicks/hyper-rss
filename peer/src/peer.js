@@ -60,6 +60,14 @@ export const Peer = LoggableMixin(class Peer {
     return await this.keyedBlobs.get(key, { ...options });
   }
 
+  async getBlobId (key, options = {}) {
+    return await this.keyedBlobs.getId(key, { ...options });
+  }
+
+  async getBlobRange (blobId, range, options = {}) {
+    return await this.keyedBlobs.getRange(blobId, range, { ...options });
+  }
+
   async getKeysAndBlobs (options = {}) {
     return await this.keyedBlobs.getKeysAndBlobs({ ...options });
   }
