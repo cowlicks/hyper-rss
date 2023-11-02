@@ -145,10 +145,55 @@ export const Store = LoggableMixin(class Store {
   }
 });
 
+// TODO find better home
+const BLOCK_SIZE = 64 * 1024;
+const N_BLOCK_CHUNKS = 5;
+
 export class Server extends RpcServer {
   async listenToClients ({ port, app = express(), aggregator } = {}) {
     app.get('/:feed/:blob', async (req, res) => {
-      const result = await aggregator.getReaderBlob(req.params.feed, req.params.blob, { beeOpts: { wait: false, update: false } });
+      const { feed, blob } = req.params;
+
+      const id = await aggregator.getReaderBlobId(
+        feed,
+        blob,
+        { beeOpts: { wait: false, update: false } },
+      );
+
+      const ranges = req.range(id.byteLength);
+
+      // not a range request
+      if (!ranges) {
+        const result = await aggregator.getReaderBlob(
+          req.params.feed,
+          req.params.blob,
+          { beeOpts: { wait: false, update: false } },
+        );
+        res.send(result);
+        return;
+      }
+
+      if (ranges.length !== 1) throw new Error('TODO Got multiple ranges for request??');
+      if (ranges.type !== 'bytes') throw new Error('TODO non byte range request ??');
+      let { start, end } = ranges[0];
+      end = Math.min(id.byteLength, start + BLOCK_SIZE * N_BLOCK_CHUNKS);
+
+      // TODO handle end > byteLength, start > bytelength, start > end
+      // res.set(416) // range not satifiable
+
+      const result = await aggregator.getReaderBlobRange(feed, id, { start, end });
+      res.set('Content-Range', `bytes ${start}-${end}/${id.byteLength}`);
+      res.set('Accept-Ranges', 'bytes');
+      res.status(206);
+
+      // this is set automatically
+      // res.set('Content-Length', `${start - end + 1}`);
+
+      // TODO do I need to set Content-type ???
+      // without it, in the browser, it is showing as application/octet-stream.
+      // but should I set it based on the actual content type of the blob?
+      // res.set('Content-type', ???);
+
       res.send(result);
     });
 

@@ -104,6 +104,14 @@ export const Aggregator = LoggableMixin(class Aggregator {
     return this._getReader(discoveryKeyString).getBlob(url, options);
   }
 
+  getReaderBlobId (discoveryKeyString, url, options) {
+    return this._getReader(discoveryKeyString).getBlobId(url, options);
+  }
+
+  getReaderBlobRange (discoveryKeyString, blobId, range, options) {
+    return this._getReader(discoveryKeyString).getBlobRange(blobId, range, options);
+  }
+
   updateReader (discoveryKeyString, options = {}) {
     return this._getReader(discoveryKeyString).update(options);
   }
