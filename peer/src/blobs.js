@@ -44,9 +44,11 @@ export const KeyedBlobs = LoggableMixin(class KeyedBlobs {
 
   async put (key, blob, { blobsOpts, beeOpts } = {}) {
     const id = await this.blobs.put(blob, blobsOpts);
-    await this.keys.put(key,
+    await this.keys.put(
+      key,
       JSON.stringify(id),
-      beeOpts);
+      beeOpts,
+    );
     return id;
   }
 
@@ -84,9 +86,10 @@ export const KeyedBlobs = LoggableMixin(class KeyedBlobs {
     return idFromGetKeyResult(await this.keys.get(key, beeOpts));
   }
 
-  async getRange (id, { start, end }, { blobsOpts = {} } = {}) {
-    this.log(`Get blob with ID [${id}]`);
-    const blob = await this.blobs.get(id, { ...blobsOpts, start, end });
-    return blob;
+  getRange (id, { start, end }, { blobsOpts = {} } = {}) {
+    this.log(`Get blob chunk from [${start}] to [${end}]
+with ID:
+${id}`);
+    return this.blobs.get(id, { ...blobsOpts, start, end });
   }
 });
