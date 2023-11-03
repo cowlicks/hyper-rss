@@ -143,8 +143,8 @@ test('Writer get feed title',
       const description = 'Podcast by Chapo Trap House';
 
       await writer.updateMetadata();
-      t.is(await writer.bTrees.feed.getMetadataValue('title'), title);
-      t.is(await writer.bTrees.feed.getMetadataValue('description'), description);
+      t.is(await writer.feed.getMetadataValue('title'), title);
+      t.is(await writer.feed.getMetadataValue('description'), description);
       t.pass();
     });
   },

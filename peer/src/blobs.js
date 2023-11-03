@@ -11,7 +11,7 @@ export const KeyedBlobs = LoggableMixin(class KeyedBlobs {
     const { blobKeys: blobKeysName, blobs: blobsName } = storeNames({ ...rest });
     const blobKeys = store.get({ name: blobKeysName });
     const blobs = store.get({ name: blobsName });
-    return new KeyedBlobs(blobKeys, blobs);
+    return new this(blobKeys, blobs);
   }
 
   constructor (blobKeysCore, blobsCore) {

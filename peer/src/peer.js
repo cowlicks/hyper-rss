@@ -31,9 +31,7 @@ export const Peer = LoggableMixin(class Peer {
         blobKeys,
         blobs,
       },
-      bTrees: {
-        feed: feedBTree,
-      },
+      feed: feedBTree,
       keyedBlobs,
     };
   }
@@ -48,20 +46,20 @@ export const Peer = LoggableMixin(class Peer {
     ]);
   }
 
-  async getMetadata (options) {
-    return await this.bTrees.feed.getMetadata(options);
+  getMetadata (options) {
+    return this.feed.getMetadata(options);
   }
 
-  async getFeed (options) {
-    return await takeAll(this.bTrees.feed.getFeedStream(options));
+  getFeed (options) {
+    return takeAll(this.feed.getFeedStream(options));
   }
 
-  async getBlob (key, options = {}) {
-    return await this.keyedBlobs.get(key, { ...options });
+  getBlob (key, options = {}) {
+    return this.keyedBlobs.get(key, { ...options });
   }
 
-  async getBlobId (key, options = {}) {
-    return await this.keyedBlobs.getId(key, { ...options });
+  getBlobId (key, options = {}) {
+    return this.keyedBlobs.getId(key, { ...options });
   }
 
   async getBlobRange (blobId, range, options = {}) {
@@ -80,7 +78,7 @@ export const Peer = LoggableMixin(class Peer {
       this.cores.feed.close(),
       this.cores.blobKeys.close(),
       this.cores.blobs.close(),
-      this.bTrees.feed.close(),
+      this.feed.close(),
       this.keyedBlobs.close(),
     ]);
   }

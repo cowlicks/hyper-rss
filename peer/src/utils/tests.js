@@ -96,7 +96,7 @@ export async function withReader (discoveryKey, testFunc) {
   await withTmpDir(async (storageName) => {
     const reader = new Reader(discoveryKey);
     await reader.init({ storageName });
-    await reader.bTrees.feed.update({ wait: true });
+    await reader.feed.update({ wait: true });
     try {
       await testFunc(reader);
     } finally {

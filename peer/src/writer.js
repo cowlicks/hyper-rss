@@ -52,7 +52,7 @@ function getCores (store, { ...rest } = {}) {
 export function getStoreAndCores ({ ...opts } = {}) {
   const { store, ...storeRest } = getStore({ ...opts });
   const cores = getCores(store, { ...opts });
-  return { store, cores, ...storeRest };
+  return { cores, store, ...storeRest };
 }
 
 const fromConfigPropertyName = 'fromConfig';
@@ -90,9 +90,10 @@ export class Writer extends Peer {
 
   async init () {
     const parsedRssFeed = await this.parser.parseURL(this.url);
-    const { store, cores: { keys, feed, blobKeys, blobs }, ...storeAndCoreRest } = getStoreAndCores({ ...this.opts });
+    const { store, cores, ...storeAndCoreRest } = getStoreAndCores({ ...this.opts });
+    const { keys, blobKeys, blobs } = cores;
 
-    const { cores, bTrees, keyedBlobs } = await this.ready({ keys, feed, blobKeys, blobs });
+    const { feed, keyedBlobs } = await this.ready(cores);
     this.log('Cores made ready');
 
     const { swarm, peerDiscovery } = swarmInit(keys.discoveryKey, store);
@@ -115,7 +116,7 @@ export class Writer extends Peer {
         store,
         swarm,
         cores,
-        bTrees,
+        feed,
         keyedBlobs,
         ...storeAndCoreRest,
         parsedRssFeed,
@@ -126,14 +127,14 @@ export class Writer extends Peer {
   }
 
   getMissing () {
-    return itemsNotHyperized(this.parsedRssFeed.items, this.bTrees.feed);
+    return itemsNotHyperized(this.parsedRssFeed.items, this.feed);
   }
 
   async addNewItems (newItems) {
     this.log(`# new items = [${newItems.length}]`);
     for (const { key, rssItem } of newItems) {
       const handled = await handleItem(rssItem, { keyedBlobs: this.keyedBlobs });
-      await this.bTrees.feed.putOrderdItem(key, JSON.stringify(handled));
+      await this.feed.putOrderdItem(key, JSON.stringify(handled));
     }
   }
 
@@ -141,7 +142,7 @@ export class Writer extends Peer {
     for (const field of RSS_METADATA_FIELDS) {
       const value = this.parsedRssFeed[field];
       if (typeof value !== 'undefined') {
-        await this.bTrees.feed.maybeUpdateMetadata(field, JSON.stringify(value));
+        await this.feed.maybeUpdateMetadata(field, JSON.stringify(value));
       }
     }
   }
