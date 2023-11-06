@@ -97,9 +97,10 @@ export class OrderedHyperbee extends Hyperbee {
   async * getFeedStream (opts) {
     const feedDb = this.sub(KEY_NAMESPACE);
     for await (const orderObj of this.sub(ORDER_NAMESPACE).createReadStream({ reverse: true, ...opts })) {
+      const orderIndex = parseInt(orderObj.key.toString(), 10);
       const key = orderObj.value.toString();
       const result = await feedDb.get(key, { ...opts });
-      yield result;
+      yield { ...result, orderIndex };
     }
   }
 }
