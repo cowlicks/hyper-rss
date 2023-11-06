@@ -26,6 +26,20 @@ export function orderStringFromNumber (num, nDigits = N_ORDER_DIGITS_DEFAULT) {
   return leftPad(num.toString(), '0', nDigits);
 }
 
+/*
+ * A key value store that preserves insertion order.
+ * Also has seperate storage for metadata.
+ *
+ * We keep ordering using two sub-databases within the Hyperbee. The two
+ * sub-databases are namespaceds with key prefixes defined by KEY_NAMESPACE and
+ * ORDER_NAMESPACE. For a given `key` and `value`, we store a mapping of the
+ * ordering index `i` to the `key` in the ORDER_NAMESPACE. Then in
+ * KEY_NAMESPACE we store the `key` to `value`. So to get the `(key, value)`
+ * pairs in order, we iterate over the `ORDER_NAMESPACE` to get it's values
+ * (the `key`s) then use these `key`s to get the `value`s.
+ *
+ * Metadata is stored in a seperate METADATA_NAMESPACE.
+ */
 export class OrderedHyperbee extends Hyperbee {
   async getMetadataValue (key, options) {
     const out = await this.sub(METADATA_NAMESPACE).get(key, { ...options });

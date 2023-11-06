@@ -6,6 +6,8 @@ export const REDDIT = 'reddit',
   CHAPO = 'chapo',
   SKEPTOID = 'skeptoid';
 
+// TODO collect more test feeds
+// get blogs, podcasts, RSS, and atom, video, multiple enclosures, no entry Id.
 export const TEST_URLS = {
   [REDDIT]: 'https://www.reddit.com/.rss',
   [XKCD]: 'https://xkcd.com/rss.xml',
