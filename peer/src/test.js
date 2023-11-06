@@ -1,16 +1,23 @@
-import { KeyedBlobs } from './blobs.js';
-import { withTmpDir, withUpdatedWriter, withTmpWriter, withReader } from './utils/tests.js';
 import { join } from 'node:path';
 import { stat } from 'node:fs/promises';
 
+import Hypercore from 'hypercore';
+import RAM from 'random-access-memory';
+
 import test from 'ava';
 
-import { getStore, getStoreAndCores, Writer } from './writer.js';
-import { retry } from './utils/async.js';
+import { logBook } from '@hrss/utils';
+
 import { withRssServer, download, mutateRss, jsonFromXml, xmlFromJson } from './tools/mirror.js';
+import { withTmpDir, withUpdatedWriter, withTmpWriter, withReader } from './utils/tests.js';
+import { retry } from './utils/async.js';
+
+import { KeyedBlobs } from './blobs.js';
+import { getStore, getStoreAndCores, Writer } from './writer.js';
 import { CHAPO, TEST_URLS, XKCD } from './const.js';
 import { Peer } from './peer.js';
-import { logBook } from '@hrss/utils';
+
+import { OrderedHyperbee } from './feed.js';
 
 test('Test peer logging mixin', async (t) => {
   const logString = 'my test log msg';
@@ -149,3 +156,30 @@ test('Writer get feed title',
     });
   },
 );
+test('OrderedHyperbee is ordered', async (t) => {
+  const core = new Hypercore(RAM);
+  const oh = new OrderedHyperbee(core);
+  await oh.ready();
+  await oh.putOrderdItem('100', 'hundred');
+  await oh.putOrderdItem('001', 'one');
+  await oh.putOrderdItem('010', 'ten');
+  const stream = oh.getFeedStream()[Symbol.asyncIterator]();
+  let result;
+
+  result = (await stream.next()).value;
+  t.deepEqual(
+    [result.orderIndex, result.key.toString(), result.value.toString()],
+    [2, '010', 'ten'],
+  );
+  result = (await stream.next()).value;
+  t.deepEqual(
+    [result.orderIndex, result.key.toString(), result.value.toString()],
+    [1, '001', 'one'],
+  );
+  result = (await stream.next()).value;
+  t.deepEqual(
+    [result.orderIndex, result.key.toString(), result.value.toString()],
+    [0, '100', 'hundred'],
+  );
+  t.pass();
+});
