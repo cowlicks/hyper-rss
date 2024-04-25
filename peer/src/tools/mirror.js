@@ -174,6 +174,9 @@ export async function rewriteFeedItemAndSaveToDisk (item, options) {
 }
 
 // test this to verify enclosure changes
+// visit a URL and download it
+// dowload images and enclosures within the url to disk
+// the rewrite the urls within the downloaded RSS feed to point to disk
 export async function saveRssToDiskFromUrl (url, { pathPrefix = MIRRORED_DIR, maxItems = Number.MAX_VALUE } = {}) {
   const str = await download(url);
   const newXml = await mutateRss(str, async (feed) => {
@@ -240,6 +243,7 @@ ${url.href}
 
 const DEFAULT_MAX_RSS_ITEMS_TO_MIRROR = 5;
 
+// downloads `maxItems` newest items from the url asociated with `name`
 export async function mirrorNamedRss (name, maxItems = DEFAULT_MAX_RSS_ITEMS_TO_MIRROR) {
   const url = TEST_URLS[name];
   console.log(`Creating a mirror of RSS feed for [${name}] from [${url}]`);

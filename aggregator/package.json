@@ -6,6 +6,8 @@
   "license": "MIT",
   "scripts": {
     "lint": "eslint src/*",
+    "server": "node src/bin/server.js",
+    "pull-test-data": "node src/bin/update-test-data.js",
     "test": "ava"
   },
   "dependencies": {

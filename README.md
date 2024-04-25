@@ -1,5 +1,23 @@
-# Goals
+# Hyper-RSS
+# ⚠️  WARNING 🚧 API unstable ⚒️  and still in development 👷
 
+Peer-to-peer RSS. This repo provides:
+
+## Usage
+
+Start the `aggregator` backend with:
+```shell
+cd aggregator && yarn server
+```
+
+Start the web frontend, which needs `aggregator`:
+```shell
+cd web && yarn dev
+```
+
+## Goals
+
+* Standardized format for interoperability
 * Be able to easily create a hrss feed from a regular rss/atom feed.
 * Pulling updates into the hrss feed from a regular rss/atom feed should be easy.
 * Writer defaults should provide a consistent level of protection against
@@ -37,7 +55,7 @@ Existing is created by loading the config info from a file.
 This file has the URL and storage name. New can just be provide a URL.
 Then it should create this config file.
 
-Reader *can* piggy back off this config file to ease local testing, for this reason we add the discovery key to it.
+Reader *can* piggy ack off this config file to ease local testing, for this reason we add the discovery key to it.
 
 ### Different builds
 
