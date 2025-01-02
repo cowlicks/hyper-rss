@@ -8,8 +8,8 @@ Peer-to-peer RSS built on [`Hypercore`](https://docs.pears.com/building-blocks/h
 - [x] Create a hrss peer for reading writing, available as a library (`peer/`)
 - [x] Create a simple feed reader/aggregator app (`aggregator/`)
 - [x] Be able to easily create a hrss feed from a regular rss/atom feed.
-- [~] Updating an hrss feed from a regular rss/atom feed should be easy.
-- [~] Standardized format of hrss
+- [x] Updating an hrss feed from a regular rss/atom feed should be easy.
+- [x] Standardized format of hrss
 - [ ] Standardize  formats for podcasts and TV shows on top of stand hrss format
 
 ## Usage
